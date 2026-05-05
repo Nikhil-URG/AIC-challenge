@@ -1,0 +1,29 @@
+[0.728s] Invoking command in '/home/damien/ws_aic/src/aic/my_policy_node': CONDA_PROMPT_MODIFIER=(base) DEBUGINFOD_URLS=https://debuginfod.ubuntu.com PIXI_PROMPT=(aic) PS1=(aic) (base) \[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ PYTHONPATH=/home/damien/ws_aic/src/aic/build/my_policy_node/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/damien/ws_aic/src/aic/install/my_policy_node/lib/python3.12/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../build/my_policy_node build --build-base /home/damien/ws_aic/src/aic/build/my_policy_node/build install --record /home/damien/ws_aic/src/aic/build/my_policy_node/install.log --single-version-externally-managed
+[0.975s] running egg_info
+[0.992s] writing ../build/my_policy_node/my_policy_node.egg-info/PKG-INFO
+[0.993s] writing dependency_links to ../build/my_policy_node/my_policy_node.egg-info/dependency_links.txt
+[0.993s] writing entry points to ../build/my_policy_node/my_policy_node.egg-info/entry_points.txt
+[0.993s] writing requirements to ../build/my_policy_node/my_policy_node.egg-info/requires.txt
+[0.993s] writing top-level names to ../build/my_policy_node/my_policy_node.egg-info/top_level.txt
+[1.030s] reading manifest file '../build/my_policy_node/my_policy_node.egg-info/SOURCES.txt'
+[1.031s] writing manifest file '../build/my_policy_node/my_policy_node.egg-info/SOURCES.txt'
+[1.031s] running build
+[1.031s] running build_py
+[1.031s] copying my_policy_node/CableInsertionPolicy.py -> /home/damien/ws_aic/src/aic/build/my_policy_node/build/lib/my_policy_node
+[1.031s] copying my_policy_node/AutoDataCollector.py -> /home/damien/ws_aic/src/aic/build/my_policy_node/build/lib/my_policy_node
+[1.031s] copying my_policy_node/__init__.py -> /home/damien/ws_aic/src/aic/build/my_policy_node/build/lib/my_policy_node
+[1.032s] copying my_policy_node/simple_insertion.py -> /home/damien/ws_aic/src/aic/build/my_policy_node/build/lib/my_policy_node
+[1.032s] copying my_policy_node/WaveArm.py -> /home/damien/ws_aic/src/aic/build/my_policy_node/build/lib/my_policy_node
+[1.032s] copying my_policy_node/py.typed -> /home/damien/ws_aic/src/aic/build/my_policy_node/build/lib/my_policy_node
+[1.032s] running install
+[1.036s] running install_lib
+[1.053s] copying /home/damien/ws_aic/src/aic/build/my_policy_node/build/lib/my_policy_node/simple_insertion.py -> /home/damien/ws_aic/src/aic/install/my_policy_node/lib/python3.12/site-packages/my_policy_node
+[1.054s] byte-compiling /home/damien/ws_aic/src/aic/install/my_policy_node/lib/python3.12/site-packages/my_policy_node/simple_insertion.py to simple_insertion.cpython-312.pyc
+[1.056s] running install_egg_info
+[1.073s] removing '/home/damien/ws_aic/src/aic/install/my_policy_node/lib/python3.12/site-packages/my_policy_node-0.0.1-py3.12.egg-info' (and everything under it)
+[1.073s] Copying ../build/my_policy_node/my_policy_node.egg-info to /home/damien/ws_aic/src/aic/install/my_policy_node/lib/python3.12/site-packages/my_policy_node-0.0.1-py3.12.egg-info
+[1.074s] running install_scripts
+[1.112s] Installing my_policy_node script to /home/damien/ws_aic/src/aic/install/my_policy_node/lib/my_policy_node
+[1.113s] Installing simple_insertion script to /home/damien/ws_aic/src/aic/install/my_policy_node/lib/my_policy_node
+[1.113s] writing list of installed files to '/home/damien/ws_aic/src/aic/build/my_policy_node/install.log'
+[1.133s] Invoked command in '/home/damien/ws_aic/src/aic/my_policy_node' returned '0': CONDA_PROMPT_MODIFIER=(base) DEBUGINFOD_URLS=https://debuginfod.ubuntu.com PIXI_PROMPT=(aic) PS1=(aic) (base) \[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ PYTHONPATH=/home/damien/ws_aic/src/aic/build/my_policy_node/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/damien/ws_aic/src/aic/install/my_policy_node/lib/python3.12/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../build/my_policy_node build --build-base /home/damien/ws_aic/src/aic/build/my_policy_node/build install --record /home/damien/ws_aic/src/aic/build/my_policy_node/install.log --single-version-externally-managed

@@ -1,0 +1,24 @@
+[0.000000] (-) TimerEvent: {}
+[0.000286] (-) JobUnselected: {'identifier': 'aic_adapter'}
+[0.000528] (-) JobUnselected: {'identifier': 'aic_assets'}
+[0.000762] (-) JobUnselected: {'identifier': 'aic_bringup'}
+[0.000844] (-) JobUnselected: {'identifier': 'aic_control_interfaces'}
+[0.000881] (-) JobUnselected: {'identifier': 'aic_controller'}
+[0.000961] (-) JobUnselected: {'identifier': 'aic_description'}
+[0.000986] (-) JobUnselected: {'identifier': 'aic_engine'}
+[0.001010] (-) JobUnselected: {'identifier': 'aic_engine_interfaces'}
+[0.001033] (-) JobUnselected: {'identifier': 'aic_example_policies'}
+[0.001055] (-) JobUnselected: {'identifier': 'aic_gazebo'}
+[0.001076] (-) JobUnselected: {'identifier': 'aic_model'}
+[0.001097] (-) JobUnselected: {'identifier': 'aic_model_interfaces'}
+[0.001118] (-) JobUnselected: {'identifier': 'aic_mujoco'}
+[0.001138] (-) JobUnselected: {'identifier': 'aic_scoring'}
+[0.001158] (-) JobUnselected: {'identifier': 'aic_task_interfaces'}
+[0.001182] (-) JobUnselected: {'identifier': 'aic_teleoperation'}
+[0.001258] (-) JobUnselected: {'identifier': 'aic_training_interfaces'}
+[0.001282] (-) JobUnselected: {'identifier': 'aic_training_utils'}
+[0.001302] (-) JobUnselected: {'identifier': 'lerobot_robot_aic'}
+[0.001336] (my_policy_node) JobQueued: {'identifier': 'my_policy_node', 'dependencies': OrderedDict({'aic_control_interfaces': '/home/damien/ws_aic/src/aic/install/aic_control_interfaces', 'aic_task_interfaces': '/home/damien/ws_aic/src/aic/install/aic_task_interfaces', 'aic_model_interfaces': '/home/damien/ws_aic/src/aic/install/aic_model_interfaces', 'aic_model': '/home/damien/ws_aic/src/aic/install/aic_model'})}
+[0.001379] (my_policy_node) JobStarted: {'identifier': 'my_policy_node'}
+[0.007257] (my_policy_node) JobEnded: {'identifier': 'my_policy_node', 'rc': 1}
+[0.017803] (-) EventReactorShutdown: {}

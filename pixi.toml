@@ -26,6 +26,8 @@ ros-kilted-aic-training-interfaces = { path = "aic_utils/aic_training_interfaces
 ros-kilted-control-msgs = "*"                                                          # lerobot_robot_ros
 ros-kilted-geometry-msgs = "*"                                                         # lerobot_robot_ros
 ros-kilted-lerobot-robot-aic = { path = "aic_utils/lerobot_robot_aic" }
+
+
 ros-kilted-moveit-msgs = "*"                                                           # lerobot_robot_ros
 ros-kilted-rclpy = "*"
 ros-kilted-rmw-zenoh-cpp = "*"
@@ -35,6 +37,8 @@ ros-kilted-std-msgs = "*"                                                       
 ros-kilted-std-srvs = "*"
 ros-kilted-tf2-ros-py = "*"
 setuptools = ">=71.0.0,<81.0.0"                                                        # required by lerobot==0.4.3
+
+ros-kilted-my-policy-node = { path = "my_policy_node" }                                # custom policy node
 
 [pypi-dependencies]
 huggingface-hub = { version = "~=1.7" }
@@ -47,3 +51,6 @@ pyspacemouse = ">=2.0.0, <3"
 
 [activation]
 scripts = ["pixi_env_setup.sh"]
+
+
+
