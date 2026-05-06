@@ -61,8 +61,19 @@ _MAX_ANG_VEL            = 1.5     # rad/s
 _STALL_RATE_MM_S         = 0.5    # mm/s — below this is considered stalled
 _STALL_WINDOW_S          = 4.0    # seconds without progress before triggering
 _STALL_GRACE_S           = 5.0    # seconds at ACT start before stall check begins
-_FORCE_BACKOFF_SPEED_MPS = 0.015  # m/s pullback (matches data collector PULLBACK_VEL_M_S)
-_FORCE_BACKOFF_DIST_M    = 0.008  # 8 mm pullback  (matches data collector PULLBACK_DIST_M)
+_CLOSE_THRESH_M          = 0.010  # 10 mm to port — suppress stall, plug nearly inserted
+_INSERT_DONE_M           = 0.002  # 2 mm — declare success
+_BACKOFF_SPEED_MPS       = 0.015  # m/s pullback speed
+_BACKOFF_SHORT_M         = 0.002  # 2 mm — attempts 1-2
+_BACKOFF_LONG_M          = 0.003  # 3 mm — attempts 3+
+# ── Lateral-correction overlay (attempts 3-5, mirrors data collector) ─────────
+_LATERAL_KP              = 10.0   # lateral hold gain  (INSERT_HOLD_KP)
+# ── Wiggle-entry mode (attempts > 5) ──────────────────────────────────────────
+_WIGGLE_Z_ABOVE          = 0.001  # 1 mm above entrance before wiggling
+_WIGGLE_AMP_M            = 0.0015 # 1.5 mm circular wiggle amplitude
+_WIGGLE_FREQ_HZ          = 1.5    # Hz
+_WIGGLE_PUSH_MPS         = 0.003  # gentle axial push during wiggle
+_WIGGLE_TIMEOUT_S        = 20.0
 _MAX_REALIGN_RETRIES     = 10
 
 
@@ -139,6 +150,7 @@ class SFPInsertionPolicy(Policy):
         super().__init__(parent_node)
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self._insertion_axis: np.ndarray = np.array([0.0, 0.0, -1.0])  # updated by _gt_approach
+        self._port_pos: Optional[np.ndarray] = None                    # updated by _gt_approach
 
         policy_path = self._resolve_policy_path()
         self.get_logger().info(f"SFPInsertionPolicy: loading from {policy_path}")
@@ -305,21 +317,84 @@ class SFPInsertionPolicy(Policy):
         self,
         move_robot: MoveRobotCallback,
         send_feedback: SendFeedbackCallback,
+        dist_m: float = _BACKOFF_SHORT_M,
     ) -> None:
         """Pull back along the reverse insertion axis to clear a stuck position."""
-        backoff_vel = -self._insertion_axis * _FORCE_BACKOFF_SPEED_MPS
-        dur = _FORCE_BACKOFF_DIST_M / _FORCE_BACKOFF_SPEED_MPS
+        backoff_vel = -self._insertion_axis * _BACKOFF_SPEED_MPS
+        dur = dist_m / _BACKOFF_SPEED_MPS
         self.get_logger().info(
-            f"Backoff: {_FORCE_BACKOFF_DIST_M*1000:.0f} mm along "
+            f"Backoff: {dist_m*1000:.0f} mm along "
             f"{(-self._insertion_axis).round(3)} for {dur:.2f}s"
         )
-        send_feedback(f"Force spike — backing off {_FORCE_BACKOFF_DIST_M*1000:.0f} mm...")
+        send_feedback(f"Backing off {dist_m*1000:.0f} mm...")
         t0 = time.time()
         while time.time() - t0 < dur:
             self._send_cmd(move_robot, backoff_vel)
             self.sleep_for(0.05)
         self._stop(move_robot)
         self.sleep_for(0.1)
+
+    def _wiggle_entry(
+        self,
+        move_robot: MoveRobotCallback,
+        send_feedback: SendFeedbackCallback,
+    ) -> bool:
+        """
+        Position plug 1 mm above the entrance, then apply a circular oscillation
+        perpendicular to the insertion axis with a gentle axial push until the plug
+        enters the close-range zone (_CLOSE_THRESH_M).  Returns True on entry.
+        """
+        # Position plug right at entrance before wiggling
+        self._gt_approach(
+            self._task, move_robot, send_feedback, z_above=_WIGGLE_Z_ABOVE
+        )
+        self.sleep_for(0.2)
+
+        # Build two orthogonal vectors in the plane perpendicular to axis
+        axis = self._insertion_axis
+        ref = np.array([1.0, 0.0, 0.0]) if abs(axis[0]) < 0.9 else np.array([0.0, 1.0, 0.0])
+        perp1 = np.cross(axis, ref)
+        perp1 /= np.linalg.norm(perp1)
+        perp2 = np.cross(axis, perp1)
+
+        plug_frames = [
+            f"{self._task.cable_name}/{self._task.plug_name}_link",
+            f"{self._task.cable_name}/{self._task.plug_name}",
+        ]
+
+        send_feedback("Wiggle entry: searching for port...")
+        w = 2.0 * math.pi * _WIGGLE_FREQ_HZ
+        t0 = time.time()
+
+        while time.time() - t0 < _WIGGLE_TIMEOUT_S:
+            t = time.time() - t0
+
+            # Check if plug has entered close-range zone
+            plug_pos = None
+            for frame in plug_frames:
+                plug_pos = self._lookup_pos(frame)
+                if plug_pos is not None:
+                    break
+            if plug_pos is not None and self._port_pos is not None:
+                dist = float(np.dot(self._port_pos - plug_pos, axis))
+                if dist <= _CLOSE_THRESH_M:
+                    self._stop(move_robot)
+                    self.get_logger().info(
+                        f"Wiggle entry succeeded  dist={dist*1000:.1f}mm"
+                    )
+                    return True
+
+            # Circular wiggle velocity (derivative of circular position)
+            wig_vel = _WIGGLE_AMP_M * w * (
+                -math.sin(w * t) * perp1 + math.cos(w * t) * perp2
+            )
+            lin = axis * _WIGGLE_PUSH_MPS + wig_vel
+            self._send_cmd(move_robot, lin)
+            self.sleep_for(0.05)
+
+        self._stop(move_robot)
+        self.get_logger().warn("Wiggle entry timed out")
+        return False
 
     # ── Observation building ──────────────────────────────────────────────
 
@@ -392,6 +467,7 @@ class SFPInsertionPolicy(Policy):
         task: Task,
         move_robot: MoveRobotCallback,
         send_feedback: SendFeedbackCallback,
+        z_above: float = _APPROACH_Z_ABOVE,
     ) -> bool:
         """
         Simultaneously corrects position AND orientation using KP velocity control,
@@ -436,7 +512,9 @@ class SFPInsertionPolicy(Policy):
         dlen = np.linalg.norm(delta)
         axis = delta / dlen if dlen > 0.005 else np.array([0.0, 0.0, -1.0])
         self._insertion_axis = axis   # persist for force monitoring and backoff
-        target = entrance_pos - axis * _APPROACH_Z_ABOVE
+        target = entrance_pos - axis * z_above
+
+        self._port_pos = port_pos   # used by _act_phase for close-range detection
 
         self.get_logger().info(
             f"GT approach  port={port_pos.round(3)}  "
@@ -532,17 +610,37 @@ class SFPInsertionPolicy(Policy):
 
         for attempt in range(_MAX_REALIGN_RETRIES + 1):
             if attempt > 0:
-                send_feedback(
-                    f"Realign attempt {attempt}/{_MAX_REALIGN_RETRIES}: "
-                    "backing off and realigning..."
+                # Pullback: short (2 mm) for first 2 retries, slightly longer (3 mm) after
+                pullback = _BACKOFF_LONG_M if attempt >= 3 else _BACKOFF_SHORT_M
+                self.get_logger().info(
+                    f"Recovery attempt {attempt}/{_MAX_REALIGN_RETRIES}  "
+                    f"pullback={pullback*1000:.0f}mm  "
+                    f"mode={'wiggle' if attempt > 5 else 'lateral' if attempt >= 3 else 'plain'}"
                 )
-                self._backoff(move_robot, send_feedback)
+                self._backoff(move_robot, send_feedback, dist_m=pullback)
                 self.policy.reset()
-                self._gt_approach(task, move_robot, send_feedback)
+
+                if attempt > 5:
+                    # Wiggle mode: position right at entrance and oscillate in
+                    send_feedback(f"Wiggle entry (attempt {attempt + 1})...")
+                    self._wiggle_entry(move_robot, send_feedback)
+                else:
+                    self._gt_approach(task, move_robot, send_feedback)
+
                 self.sleep_for(0.3)
 
-            send_feedback(f"ACT insertion (attempt {attempt + 1})...")
-            result = self._act_phase(get_observation, move_robot, send_feedback)
+            # Choose ACT mode based on attempt count
+            lateral = 3 <= attempt <= 5
+            send_feedback(
+                f"ACT insertion (attempt {attempt + 1}"
+                + (", lateral correction" if lateral else "")
+                + (", post-wiggle" if attempt > 5 else "")
+                + ")..."
+            )
+            result = self._act_phase(
+                get_observation, move_robot, send_feedback,
+                lateral_correct=lateral,
+            )
 
             if result != "stall":
                 break
@@ -562,13 +660,16 @@ class SFPInsertionPolicy(Policy):
         move_robot: MoveRobotCallback,
         send_feedback: SendFeedbackCallback,
         timeout_sec: float = 60.0,
+        lateral_correct: bool = False,
     ):
         """
         Run ACT inference loop.  Returns True on timeout/completion.
         Returns "stall" when the plug stops making axial progress for
-        _STALL_WINDOW_S seconds, mirroring InsertionDataCollector's logic.
-        Force is NOT used for stall detection — inertial spikes during motion
-        make force unreliable as a trigger.
+        _STALL_WINDOW_S seconds.
+
+        lateral_correct=True adds a lateral-hold overlay on top of ACT's output
+        (INSERT_HOLD_KP * lat_err), used from attempt 3 onward when plain ACT
+        keeps drifting sideways.
         """
         # Build plug frame list from stored task
         task = self._task
@@ -581,10 +682,13 @@ class SFPInsertionPolicy(Policy):
         step = 0
 
         # Stall detection state (mirrors _reset_stall / _check_stall)
-        lat_ref        = None   # plug position when ACT started
+        lat_ref         = None   # plug position when ACT started (axial reference)
         stall_last_prog = 0.0
         stall_last_t    = time.monotonic()
         stall_start     = None
+
+        # Lateral-correction overlay reference (set on first plug observation)
+        lat_correct_ref: Optional[np.ndarray] = None
 
         while time.time() - start < timeout_sec:
             t0 = time.time()
@@ -611,6 +715,24 @@ class SFPInsertionPolicy(Policy):
                 stall_last_prog = axial_prog
                 stall_last_t    = now
 
+                # Close-range: plug is nearly in — distance-based success,
+                # never stall-trigger (plug stops moving once inserted).
+                if self._port_pos is not None:
+                    dist_remaining = float(
+                        np.dot(self._port_pos - plug_pos, self._insertion_axis)
+                    )
+                    if dist_remaining <= _INSERT_DONE_M:
+                        self._stop(move_robot)
+                        self.get_logger().info(
+                            f"Insertion complete  dist={dist_remaining*1000:.1f}mm  "
+                            f"step={step}"
+                        )
+                        return True
+                    if dist_remaining <= _CLOSE_THRESH_M:
+                        stall_start = None   # suppress stall — plug nearly seated
+                        self.sleep_for(max(0.0, 0.1 - (time.time() - t0)))
+                        continue
+
                 elapsed_act = time.time() - start
                 if rate_mm_s < _STALL_RATE_MM_S and elapsed_act > _STALL_GRACE_S:
                     if stall_start is None:
@@ -636,15 +758,29 @@ class SFPInsertionPolicy(Policy):
             raw_action = (normalized_action * self.action_std) + self.action_mean
             a = raw_action[0].cpu().numpy()
 
-            lin = np.clip(a[:3], -_MAX_LIN_VEL, _MAX_LIN_VEL)
-            ang = np.clip(a[3:6], -_MAX_ANG_VEL, _MAX_ANG_VEL)
+            lin = np.array(a[:3], dtype=float)
+            ang = np.array(a[3:6], dtype=float)
+
+            # Lateral-correction overlay: cancel drift perpendicular to axis
+            if lateral_correct and plug_pos is not None:
+                if lat_correct_ref is None:
+                    lat_correct_ref = plug_pos.copy()
+                disp = plug_pos - lat_correct_ref
+                axial_component = float(np.dot(disp, self._insertion_axis))
+                lat_drift = disp - axial_component * self._insertion_axis
+                lin += _LATERAL_KP * (-lat_drift)   # push back toward starting line
+
+            lin = np.clip(lin, -_MAX_LIN_VEL, _MAX_LIN_VEL)
+            ang = np.clip(ang, -_MAX_ANG_VEL, _MAX_ANG_VEL)
             self._send_cmd(move_robot, lin, ang)
 
             if step % 10 == 0:
                 prog_mm = float(np.dot(plug_pos - lat_ref, self._insertion_axis)) * 1000 if (plug_pos is not None and lat_ref is not None) else float("nan")
+                lat_mm = float(np.linalg.norm((plug_pos - lat_correct_ref) - float(np.dot(plug_pos - lat_correct_ref, self._insertion_axis)) * self._insertion_axis) * 1000) if (lateral_correct and lat_correct_ref is not None and plug_pos is not None) else float("nan")
                 send_feedback(
-                    f"ACT step {step}  prog={prog_mm:.1f}mm  "
-                    f"v=[{lin[0]:.3f},{lin[1]:.3f},{lin[2]:.3f}] m/s"
+                    f"ACT step {step}  prog={prog_mm:.1f}mm"
+                    + (f"  lat_drift={lat_mm:.1f}mm" if lateral_correct else "")
+                    + f"  v=[{lin[0]:.3f},{lin[1]:.3f},{lin[2]:.3f}] m/s"
                 )
             step += 1
 
