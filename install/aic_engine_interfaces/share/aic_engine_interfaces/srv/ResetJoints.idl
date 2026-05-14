@@ -1,0 +1,23 @@
+// generated from rosidl_adapter/resource/srv.idl.em
+// with input from aic_engine_interfaces/srv/ResetJoints.srv
+// generated code does not contain a copyright notice
+
+
+module aic_engine_interfaces {
+  module srv {
+    @verbatim (language="comment", text=
+      "Service to reset joints to their initial positions")
+    struct ResetJoints_Request {
+      sequence<string> joint_names;
+
+      sequence<double> initial_positions;
+    };
+    struct ResetJoints_Response {
+      @verbatim (language="comment", text=
+        "indicate successful reset")
+      boolean success;
+
+      string message;
+    };
+  };
+};

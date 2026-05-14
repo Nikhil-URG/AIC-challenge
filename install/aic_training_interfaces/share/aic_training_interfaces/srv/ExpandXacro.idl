@@ -1,0 +1,23 @@
+// generated from rosidl_adapter/resource/srv.idl.em
+// with input from aic_training_interfaces/srv/ExpandXacro.srv
+// generated code does not contain a copyright notice
+
+
+module aic_training_interfaces {
+  module srv {
+    struct ExpandXacro_Request {
+      string package_name;
+
+      string relative_path;
+
+      sequence<string> xacro_arguments;
+    };
+    struct ExpandXacro_Response {
+      boolean success;
+
+      string xml;
+
+      string message;
+    };
+  };
+};

@@ -24,12 +24,13 @@ import cv2
 import draccus
 import numpy as np
 import torch
-from geometry_msgs.msg import Twist, Vector3, Wrench
+from geometry_msgs.msg import TransformStamped, Twist, Vector3, Wrench
+from visualization_msgs.msg import Marker, MarkerArray
 from rclpy.duration import Duration
 from rclpy.node import Node
 from rclpy.time import Time
 from safetensors.torch import load_file
-from tf2_ros import TransformException
+from tf2_ros import StaticTransformBroadcaster, TransformException
 
 from aic_control_interfaces.msg import MotionUpdate, TrajectoryGenerationMode
 from aic_model.policy import (
@@ -45,6 +46,8 @@ from std_srvs.srv import Trigger
 
 from lerobot.policies.act.configuration_act import ACTConfig
 from lerobot.policies.act.modeling_act import ACTPolicy
+
+from my_policy_node.PortPoseDetector import CLASS_SC, CLASS_SFP, PortPoseDetector
 
 # ── Approach constants — identical to InsertionDataCollector ─────────────────
 _APPROACH_KP            = 4.0
@@ -197,6 +200,44 @@ class SFPInsertionPolicy(Policy):
         self._tare_cli = parent_node.create_client(
             Trigger, "/aic_controller/tare_force_torque_sensor"
         )
+
+        # ── Ground-truth flag ─────────────────────────────────────────────
+        try:
+            self._use_gt = bool(parent_node.get_parameter("ground_truth").value)
+        except Exception:
+            try:
+                parent_node.declare_parameter("ground_truth", True)
+                self._use_gt = bool(parent_node.get_parameter("ground_truth").value)
+            except Exception:
+                self._use_gt = True
+        self.get_logger().info(f"SFPInsertionPolicy: use_gt={self._use_gt}")
+
+        # Static TF broadcaster — used to publish YOLO-estimated port frames
+        self._tf_static_pub = StaticTransformBroadcaster(parent_node)
+
+        # Marker publisher — sphere + arrow for RViz YOLO detection overlay
+        self._marker_pub = parent_node.create_publisher(
+            MarkerArray, "/aic/yolo_detections", 10
+        )
+
+        # ── YOLO port-pose detector (optional) ───────────────────────────
+        self._pose_detector: Optional[PortPoseDetector] = None
+        model_path = PortPoseDetector.find_model()
+        if model_path is not None:
+            try:
+                self._pose_detector = PortPoseDetector(model_path)
+                self.get_logger().info(
+                    f"SFPInsertionPolicy: YOLO pose model loaded from {model_path}"
+                )
+            except Exception as exc:
+                self.get_logger().warn(
+                    f"SFPInsertionPolicy: failed to load YOLO pose model: {exc}"
+                )
+        else:
+            self.get_logger().warn(
+                "SFPInsertionPolicy: YOLO pose model not found — "
+                "YOLO-based approach will be disabled"
+            )
 
     # ── Model path resolution ─────────────────────────────────────────────
 
@@ -534,8 +575,11 @@ class SFPInsertionPolicy(Policy):
                     break
 
             if plug_pos is None:
-                self.sleep_for(0.1)
-                continue
+                # Fall back to TCP frame (always available from robot controller)
+                plug_pos, plug_R = self._lookup_pos_rot("gripper/tcp")
+                if plug_pos is None:
+                    self.sleep_for(0.1)
+                    continue
 
             pos_err = target - plug_pos
             omega = (
@@ -579,6 +623,425 @@ class SFPInsertionPolicy(Policy):
         )
         return False
 
+    # ── YOLO TF helpers ───────────────────────────────────────────────────
+
+    @staticmethod
+    def _rot_to_quat(R: np.ndarray):
+        """Rotation matrix → (x, y, z, w) quaternion via Shepperd's method."""
+        trace = R[0, 0] + R[1, 1] + R[2, 2]
+        if trace > 0:
+            s = 0.5 / math.sqrt(trace + 1.0)
+            w = 0.25 / s
+            x = (R[2, 1] - R[1, 2]) * s
+            y = (R[0, 2] - R[2, 0]) * s
+            z = (R[1, 0] - R[0, 1]) * s
+        elif R[0, 0] > R[1, 1] and R[0, 0] > R[2, 2]:
+            s = 2.0 * math.sqrt(1.0 + R[0, 0] - R[1, 1] - R[2, 2])
+            w = (R[2, 1] - R[1, 2]) / s
+            x = 0.25 * s
+            y = (R[0, 1] + R[1, 0]) / s
+            z = (R[0, 2] + R[2, 0]) / s
+        elif R[1, 1] > R[2, 2]:
+            s = 2.0 * math.sqrt(1.0 + R[1, 1] - R[0, 0] - R[2, 2])
+            w = (R[0, 2] - R[2, 0]) / s
+            x = (R[0, 1] + R[1, 0]) / s
+            y = 0.25 * s
+            z = (R[1, 2] + R[2, 1]) / s
+        else:
+            s = 2.0 * math.sqrt(1.0 + R[2, 2] - R[0, 0] - R[1, 1])
+            w = (R[1, 0] - R[0, 1]) / s
+            x = (R[0, 2] + R[2, 0]) / s
+            y = (R[1, 2] + R[2, 1]) / s
+            z = 0.25 * s
+        return float(x), float(y), float(z), float(w)
+
+    def _publish_yolo_tfs(
+        self,
+        port_frame: str,
+        entrance_frame: str,
+        port_pos: np.ndarray,
+        ins_axis: np.ndarray,
+        cam_R: np.ndarray,
+        conf: float = 1.0,
+    ) -> None:
+        """
+        Publish port and entrance TF frames estimated from YOLO detection,
+        plus RViz markers (sphere at port centre, arrow along insertion axis).
+
+        Port orientation is approximated as the camera frame (ports face the
+        camera squarely during manipulation).  Entrance is placed 2 cm in
+        front of the port along the insertion axis.
+        """
+        now = self.get_clock().now().to_msg()
+        qx, qy, qz, qw = self._rot_to_quat(cam_R)
+        entrance_pos = port_pos - ins_axis * 0.02
+
+        for child_id, pos in [
+            (port_frame,     port_pos),
+            (entrance_frame, entrance_pos),
+        ]:
+            tf = TransformStamped()
+            tf.header.stamp = now
+            tf.header.frame_id = "base_link"
+            tf.child_frame_id = child_id
+            tf.transform.translation.x = float(pos[0])
+            tf.transform.translation.y = float(pos[1])
+            tf.transform.translation.z = float(pos[2])
+            tf.transform.rotation.x = qx
+            tf.transform.rotation.y = qy
+            tf.transform.rotation.z = qz
+            tf.transform.rotation.w = qw
+            self._tf_static_pub.sendTransform(tf)
+
+        # ── RViz markers ─────────────────────────────────────────────────
+        markers = MarkerArray()
+
+        # Sphere at estimated port centre
+        sphere = Marker()
+        sphere.header.stamp = now
+        sphere.header.frame_id = "base_link"
+        sphere.ns = "yolo_port"
+        sphere.id = 0
+        sphere.type = Marker.SPHERE
+        sphere.action = Marker.ADD
+        sphere.pose.position.x = float(port_pos[0])
+        sphere.pose.position.y = float(port_pos[1])
+        sphere.pose.position.z = float(port_pos[2])
+        sphere.pose.orientation.w = 1.0
+        sphere.scale.x = sphere.scale.y = sphere.scale.z = 0.015  # 15 mm sphere
+        sphere.color.r = 0.0
+        sphere.color.g = float(conf)   # greener = higher confidence
+        sphere.color.b = 1.0 - float(conf)
+        sphere.color.a = 0.85
+        sphere.lifetime.sec = 2  # auto-remove after 2 s if not refreshed
+        markers.markers.append(sphere)
+
+        # Arrow along insertion axis (entrance → port)
+        arrow = Marker()
+        arrow.header.stamp = now
+        arrow.header.frame_id = "base_link"
+        arrow.ns = "yolo_axis"
+        arrow.id = 1
+        arrow.type = Marker.ARROW
+        arrow.action = Marker.ADD
+        # Arrow defined by two points: entrance → port
+        from geometry_msgs.msg import Point
+        p0, p1 = Point(), Point()
+        p0.x, p0.y, p0.z = float(entrance_pos[0]), float(entrance_pos[1]), float(entrance_pos[2])
+        p1.x, p1.y, p1.z = float(port_pos[0]),     float(port_pos[1]),     float(port_pos[2])
+        arrow.points = [p0, p1]
+        arrow.scale.x = 0.004  # shaft diameter
+        arrow.scale.y = 0.008  # head diameter
+        arrow.scale.z = 0.005  # head length
+        arrow.color.r = 1.0
+        arrow.color.g = 0.6
+        arrow.color.b = 0.0
+        arrow.color.a = 0.9
+        arrow.lifetime.sec = 2
+        markers.markers.append(arrow)
+
+        self._marker_pub.publish(markers)
+
+    def _yolo_detect_tf(
+        self,
+        target_class: int,
+        port_frame: str,
+        entrance_frame: str,
+        get_observation: GetObservationCallback,
+        send_feedback: SendFeedbackCallback,
+        timeout_sec: float = 10.0,
+        min_conf: float = 0.70,
+    ) -> bool:
+        """
+        Detect the target port with YOLO and publish its pose as static TF
+        frames so _gt_approach can align to them.  Does NOT move the robot.
+
+        Returns True once a detection with confidence ≥ min_conf is found
+        (or the best detection seen before timeout_sec).
+        """
+        if self._pose_detector is None:
+            return False
+
+        t0 = time.time()
+        best_conf:      float            = 0.0
+        best_port_pos:  Optional[np.ndarray] = None
+        best_ins_axis:  Optional[np.ndarray] = None
+        best_cam_R:     Optional[np.ndarray] = None
+
+        while time.time() - t0 < timeout_sec:
+            obs = get_observation()
+            if obs is None:
+                self.sleep_for(0.1)
+                continue
+
+            det, port_pos, ins_axis, cam_R, cam_name = \
+                self._best_detection_all_cameras(obs, target_class)
+
+            if det is None:
+                self.sleep_for(0.1)
+                continue
+
+            conf = det["conf"]
+            send_feedback(
+                f"YOLO({cam_name}) cls={det['class_id']} conf={conf:.2f} "
+                f"pos={port_pos.round(3)}"
+            )
+
+            if conf > best_conf:
+                best_conf     = conf
+                best_port_pos = port_pos
+                best_ins_axis = ins_axis
+                best_cam_R    = cam_R
+
+            # Publish TF immediately so RViz shows it while scanning
+            self._publish_yolo_tfs(
+                port_frame, entrance_frame, port_pos, ins_axis, cam_R, conf
+            )
+
+            if conf >= min_conf:
+                break   # good enough — stop early
+
+            self.sleep_for(0.05)
+
+        if best_port_pos is None:
+            self.get_logger().warn(
+                f"YOLO: no detection for class={target_class} within {timeout_sec:.0f}s"
+            )
+            return False
+
+        # Publish the best estimate as a persistent static TF + final marker
+        self._publish_yolo_tfs(
+            port_frame, entrance_frame, best_port_pos, best_ins_axis, best_cam_R, best_conf
+        )
+        self._port_pos       = best_port_pos
+        self._insertion_axis = best_ins_axis
+
+        self.get_logger().info(
+            f"YOLO TF published: {port_frame}  "
+            f"conf={best_conf:.2f}  pos={best_port_pos.round(3)}"
+        )
+        return True
+
+    # ── YOLO-based approach (no ground-truth TF required) ────────────────
+
+    def _best_detection_all_cameras(
+        self,
+        obs,
+        target_class: int,
+    ):
+        """
+        Run YOLO on all three cameras and return the highest-confidence
+        detection together with its 3-D estimate.
+
+        Returns (det, port_pos, ins_axis, cam_R, cam_name) or
+                (None, None, None, None, None) when nothing is detected.
+        """
+        cameras = [
+            ("center", obs.center_camera_info, obs.center_image),
+            ("left",   obs.left_camera_info,   obs.left_image),
+            ("right",  obs.right_camera_info,  obs.right_image),
+        ]
+        best = (None, None, None, None, None)
+        best_conf = 0.0
+
+        for cam_name, ci, img_msg in cameras:
+            if ci.width == 0 or not any(ci.k):
+                continue
+            K         = np.array(ci.k).reshape(3, 3)
+            cam_frame = ci.header.frame_id
+            img_w, img_h = img_msg.width, img_msg.height
+
+            cam_pos, cam_R = self._lookup_pos_rot(cam_frame)
+            if cam_pos is None:
+                continue
+
+            img_np = np.frombuffer(
+                img_msg.data, dtype=np.uint8
+            ).reshape(img_h, img_w, 3)
+            dets = self._pose_detector.detect(img_np)
+            det  = self._pose_detector.best_detection(dets, target_class)
+            if det is None:
+                continue
+
+            port_pos, ins_axis = self._pose_detector.estimate_port_3d(
+                det, K, cam_pos, cam_R, img_w, img_h
+            )
+            if port_pos is None:
+                continue
+
+            if det["conf"] > best_conf:
+                best_conf = det["conf"]
+                best = (det, port_pos, ins_axis, cam_R, cam_name)
+
+        return best
+
+    def _approach_to_yolo_pos(
+        self,
+        get_observation: GetObservationCallback,
+        move_robot: MoveRobotCallback,
+        send_feedback: SendFeedbackCallback,
+        standoff_m: float = 0.04,    # metres in front of port along insertion axis
+        timeout_sec: float = 25.0,
+        done_m: float = 0.008,       # 8 mm position tolerance
+    ) -> bool:
+        """
+        Move TCP to the YOLO-estimated approach position using observation-based
+        TCP pose (always available — no TF lookup required).
+
+        Approach target = port_pos - insertion_axis * standoff_m
+        (i.e. standoff_m before the port along the direction you insert from).
+        """
+        if self._port_pos is None or self._insertion_axis is None:
+            self.get_logger().warn("_approach_to_yolo_pos: no YOLO estimate available")
+            return False
+
+        target = self._port_pos - self._insertion_axis * standoff_m
+        self.get_logger().info(
+            f">>> YOLO approach START  "
+            f"port={self._port_pos.round(4)}  "
+            f"axis={self._insertion_axis.round(4)}  "
+            f"target={target.round(4)}  "
+            f"standoff={standoff_m*1000:.1f}mm"
+        )
+
+        t0 = time.time()
+        settled = 0
+
+        while time.time() - t0 < timeout_sec:
+            obs = get_observation()
+            if obs is None:
+                self.sleep_for(0.05)
+                continue
+
+            tcp = obs.controller_state.tcp_pose
+            tcp_pos = np.array([
+                tcp.position.x, tcp.position.y, tcp.position.z,
+            ])
+
+            pos_err = target - tcp_pos
+            err_m = float(np.linalg.norm(pos_err))
+
+            self._send_cmd(move_robot, _APPROACH_KP * pos_err)
+
+            if int((time.time() - t0) * 5) % 5 == 0:
+                send_feedback(
+                    f"YOLO approach: err={err_m*1000:.0f}mm "
+                    f"target=[{target[0]:.3f},{target[1]:.3f},{target[2]:.3f}]"
+                )
+
+            if err_m < done_m:
+                settled += 1
+                if settled >= 5:   # 0.5 s stable at 10 Hz
+                    self._stop(move_robot)
+                    self.get_logger().info(
+                        f"YOLO pos-approach complete: err={err_m*1000:.1f}mm"
+                    )
+                    return True
+            else:
+                settled = 0
+
+            self.sleep_for(1.0 / 10)
+
+        self._stop(move_robot)
+        self.get_logger().warn(
+            f"YOLO pos-approach timeout after {timeout_sec:.0f}s — "
+            "continuing to ACT from current position"
+        )
+        return False
+
+    def _yolo_approach(
+        self,
+        target_class: int,
+        get_observation: GetObservationCallback,
+        move_robot: MoveRobotCallback,
+        send_feedback: SendFeedbackCallback,
+        port_frame: str = "",
+        entrance_frame: str = "",
+        z_above: float = _APPROACH_Z_ABOVE,
+    ) -> bool:
+        """
+        Drive the TCP to a point z_above metres in front of the detected port.
+
+        Scans all three cameras each iteration and picks the highest-confidence
+        detection.  Publishes TF frames and RViz markers whenever a detection
+        is found so the result is visible in RViz throughout the approach.
+
+        Returns True when settled at the approach pose, False on timeout.
+        """
+        if self._pose_detector is None:
+            return False
+
+        settled   = 0
+        no_detect = 0
+        t0        = time.time()
+
+        while time.time() - t0 < _APPROACH_TIMEOUT_S:
+            obs = get_observation()
+            if obs is None:
+                continue
+
+            det, port_pos, ins_axis, cam_R, cam_name = \
+                self._best_detection_all_cameras(obs, target_class)
+
+            if det is None:
+                no_detect += 1
+                if no_detect % 10 == 0:
+                    send_feedback(
+                        f"YOLO: no detection in any camera ({no_detect} frames)"
+                    )
+                self.sleep_for(0.1)
+                continue
+            no_detect = 0
+
+            # Persist for ACT stall / done detection
+            self._insertion_axis = ins_axis
+            self._port_pos       = port_pos
+
+            # Publish TF frames + RViz markers (static — persists between iterations)
+            if port_frame:
+                self._publish_yolo_tfs(
+                    port_frame,
+                    entrance_frame or port_frame + "_entrance",
+                    port_pos, ins_axis, cam_R, det["conf"],
+                )
+
+            # KP position control toward approach target
+            approach_target = port_pos - ins_axis * z_above
+            tcp_pos, _ = self._lookup_pos_rot("gripper/tcp")
+            if tcp_pos is None:
+                self.sleep_for(0.1)
+                continue
+
+            pos_err = approach_target - tcp_pos
+            self._send_cmd(move_robot, _APPROACH_KP * pos_err)
+
+            pos_err_m = float(np.linalg.norm(pos_err))
+
+            if int((time.time() - t0) * 5) % 10 == 0:
+                send_feedback(
+                    f"YOLO({cam_name}): cls={det['class_id']} "
+                    f"conf={det['conf']:.2f}  err={pos_err_m*1000:.0f}mm"
+                )
+
+            if pos_err_m < _APPROACH_DONE_M:
+                settled += 1
+                if settled >= _APPROACH_SETTLED_TICKS:
+                    self._stop(move_robot)
+                    self.get_logger().info(
+                        f"YOLO approach settled — cam={cam_name} "
+                        f"cls={det['class_id']} conf={det['conf']:.2f} "
+                        f"err={pos_err_m*1000:.1f}mm"
+                    )
+                    return True
+            else:
+                settled = 0
+
+            self.sleep_for(1.0 / 10)
+
+        self._stop(move_robot)
+        self.get_logger().warn("YOLO approach timed out")
+        return False
+
     # ── Main entry point ──────────────────────────────────────────────────
 
     def insert_cable(
@@ -594,13 +1057,63 @@ class SFPInsertionPolicy(Policy):
         self.get_logger().info(f"SFPInsertionPolicy.insert_cable() — {task}")
         self._tare()
 
-        port_frame = f"task_board/{task.target_module_name}/{task.port_name}_link"
-        has_gt = self._wait_for_tf("base_link", port_frame, timeout_sec=3.0)
+        port_frame    = f"task_board/{task.target_module_name}/{task.port_name}_link"
+        entrance_frame = port_frame + "_entrance"
+
+        # Check ground-truth TF availability (skip wait entirely when use_gt=False)
+        if self._use_gt:
+            has_gt = self._wait_for_tf("base_link", port_frame, timeout_sec=3.0)
+        else:
+            has_gt = False
+            self.get_logger().info("ground_truth=false — skipping GT TF wait")
 
         if not has_gt:
-            self.get_logger().info(
-                "No task-board TF (ground_truth=false) — running ACT-only."
-            )
+            port_lower = task.port_name.lower()
+            target_cls = CLASS_SC if "sc" in port_lower else CLASS_SFP
+
+            if self._pose_detector is not None:
+                self.get_logger().info(
+                    f"No GT TF — YOLO scan (class={target_cls}, all cameras, arm still)"
+                )
+                send_feedback("YOLO: scanning cameras from current position...")
+
+                # Phase 1 — detect port while arm is stationary (best position estimate)
+                yolo_ok = self._yolo_detect_tf(
+                    target_cls, port_frame, entrance_frame,
+                    get_observation, send_feedback,
+                )
+
+                # Phase 2 — log current TCP, then approach to 2 mm in front of port
+                if yolo_ok:
+                    # Log TCP vs port so we know how far the arm is from detection
+                    obs0 = get_observation()
+                    if obs0 is not None:
+                        p = obs0.controller_state.tcp_pose.position
+                        tcp_now = np.array([p.x, p.y, p.z])
+                        self.get_logger().info(
+                            f"TCP now:  [{tcp_now[0]:.4f}, {tcp_now[1]:.4f}, {tcp_now[2]:.4f}]"
+                        )
+                    self.get_logger().info(
+                        f"Port est: {self._port_pos.round(4)}"
+                    )
+                    send_feedback(
+                        f"YOLO port at {self._port_pos.round(3)} — approaching 2 mm above..."
+                    )
+                    self._approach_to_yolo_pos(
+                        get_observation, move_robot, send_feedback,
+                        standoff_m=0.002,
+                        timeout_sec=25.0,
+                    )
+                    send_feedback("Approach done — starting ACT insertion...")
+                else:
+                    self.get_logger().warn(
+                        "YOLO: no detection — ACT starting from current position"
+                    )
+                    send_feedback("YOLO missed — running ACT from current position...")
+            else:
+                self.get_logger().info("No GT TF, no YOLO model — ACT-only.")
+                send_feedback("ACT-only (no pose detection available)...")
+
             self._act_phase(get_observation, move_robot, send_feedback)
             return True
 

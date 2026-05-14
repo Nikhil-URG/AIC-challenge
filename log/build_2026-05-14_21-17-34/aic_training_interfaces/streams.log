@@ -1,0 +1,255 @@
+[0.015s] Invoking command in '/home/damien/ws_aic/src/aic/build/aic_training_interfaces': CMAKE_PREFIX_PATH=/home/damien/ws_aic/src/aic/.pixi/envs/default CONDA_PROMPT_MODIFIER=(base) DEBUGINFOD_URLS=https://debuginfod.ubuntu.com PIXI_PROMPT=(aic) PS1=(aic) (base) \[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ /home/damien/ws_aic/src/aic/.pixi/envs/default/bin/cmake /home/damien/ws_aic/src/aic/aic_utils/aic_training_interfaces -DCMAKE_INSTALL_PREFIX=/home/damien/ws_aic/src/aic/install/aic_training_interfaces
+[0.215s] [0mCMake Deprecation Warning at CMakeLists.txt:1 (cmake_minimum_required):
+[0.215s]   Compatibility with CMake < 3.10 will be removed from a future version of
+[0.215s]   CMake.
+[0.216s] 
+[0.216s]   Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+[0.216s]   to tell CMake that the project requires at least <min> but has been updated
+[0.216s]   to work with policies introduced by <max> or earlier.
+[0.216s] 
+[0.216s] [0m
+[0.337s] -- The C compiler identification is GNU 13.3.0
+[0.448s] -- The CXX compiler identification is GNU 13.3.0
+[0.460s] -- Detecting C compiler ABI info
+[0.514s] -- Detecting C compiler ABI info - done
+[0.527s] -- Check for working C compiler: /usr/bin/cc - skipped
+[0.527s] -- Detecting C compile features
+[0.528s] -- Detecting C compile features - done
+[0.545s] -- Detecting CXX compiler ABI info
+[0.598s] -- Detecting CXX compiler ABI info - done
+[0.610s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[0.611s] -- Detecting CXX compile features
+[0.611s] -- Detecting CXX compile features - done
+[0.621s] -- Found ament_cmake: 2.7.5 (/home/damien/ws_aic/src/aic/.pixi/envs/default/share/ament_cmake/cmake)
+[0.733s] -- Found Python3: /home/damien/ws_aic/src/aic/.pixi/envs/default/bin/python3 (found version "3.12.13") found components: Interpreter
+[0.872s] -- Found rosidl_default_generators: 1.7.2 (/home/damien/ws_aic/src/aic/.pixi/envs/default/share/rosidl_default_generators/cmake)
+[0.879s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[0.926s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[0.975s] -- Found rosidl_adapter: 4.9.6 (/home/damien/ws_aic/src/aic/.pixi/envs/default/share/rosidl_adapter/cmake)
+[1.610s] -- Found ament_cmake_cppcheck: 0.19.2 (/home/damien/ws_aic/src/aic/.pixi/envs/default/share/ament_cmake_cppcheck/cmake)
+[1.613s] -- Found ament_cmake_cpplint: 0.19.2 (/home/damien/ws_aic/src/aic/.pixi/envs/default/share/ament_cmake_cpplint/cmake)
+[1.615s] -- Found ament_cmake_uncrustify: 0.19.2 (/home/damien/ws_aic/src/aic/.pixi/envs/default/share/ament_cmake_uncrustify/cmake)
+[1.620s] -- Found ament_cmake_ros_core: 0.14.7 (/home/damien/ws_aic/src/aic/.pixi/envs/default/share/ament_cmake_ros_core/cmake)
+[1.960s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[2.451s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[3.103s] -- Found Python3: /home/damien/ws_aic/src/aic/.pixi/envs/default/bin/python3 (found version "3.12.13") found components: Interpreter Development NumPy Development.Module Development.Embed
+[3.144s] -- Found ament_cmake_flake8: 0.19.2 (/home/damien/ws_aic/src/aic/.pixi/envs/default/share/ament_cmake_flake8/cmake)
+[3.149s] -- Found ament_cmake_pep257: 0.19.2 (/home/damien/ws_aic/src/aic/.pixi/envs/default/share/ament_cmake_pep257/cmake)
+[3.206s] -- Found Python3: /home/damien/ws_aic/src/aic/.pixi/envs/default/bin/python3 (found version "3.12.13") found components: Interpreter
+[3.218s] -- Configuring done (3.0s)
+[3.262s] -- Generating done (0.0s)
+[3.270s] -- Build files have been written to: /home/damien/ws_aic/src/aic/build/aic_training_interfaces
+[3.278s] Invoked command in '/home/damien/ws_aic/src/aic/build/aic_training_interfaces' returned '0': CMAKE_PREFIX_PATH=/home/damien/ws_aic/src/aic/.pixi/envs/default CONDA_PROMPT_MODIFIER=(base) DEBUGINFOD_URLS=https://debuginfod.ubuntu.com PIXI_PROMPT=(aic) PS1=(aic) (base) \[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ /home/damien/ws_aic/src/aic/.pixi/envs/default/bin/cmake /home/damien/ws_aic/src/aic/aic_utils/aic_training_interfaces -DCMAKE_INSTALL_PREFIX=/home/damien/ws_aic/src/aic/install/aic_training_interfaces
+[3.280s] Invoking command in '/home/damien/ws_aic/src/aic/build/aic_training_interfaces': CMAKE_PREFIX_PATH=/home/damien/ws_aic/src/aic/.pixi/envs/default CONDA_PROMPT_MODIFIER=(base) DEBUGINFOD_URLS=https://debuginfod.ubuntu.com PIXI_PROMPT=(aic) PS1=(aic) (base) \[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ /home/damien/ws_aic/src/aic/.pixi/envs/default/bin/cmake --build /home/damien/ws_aic/src/aic/build/aic_training_interfaces -- -j12 -l12
+[3.492s] [  2%] [1m[34mGenerating type hashes for ROS interfaces[0m
+[3.492s] [  5%] [1m[34mGenerating Rust code for ROS interfaces[0m
+[3.496s] [  5%] Built target ament_cmake_python_copy_aic_training_interfaces
+[3.741s] [  5%] Built target aic_training_interfaces__rosidl_generator_type_description
+[3.750s] [  8%] [1m[34mGenerating C code for ROS interfaces[0m
+[3.750s] [  8%] Built target aic_training_interfaces__rs
+[3.757s] [ 11%] [1m[34mGenerating C++ code for ROS interfaces[0m
+[3.793s] running egg_info
+[3.817s] creating aic_training_interfaces.egg-info
+[3.817s] writing aic_training_interfaces.egg-info/PKG-INFO
+[3.818s] writing dependency_links to aic_training_interfaces.egg-info/dependency_links.txt
+[3.818s] writing top-level names to aic_training_interfaces.egg-info/top_level.txt
+[3.818s] writing manifest file 'aic_training_interfaces.egg-info/SOURCES.txt'
+[3.889s] reading manifest file 'aic_training_interfaces.egg-info/SOURCES.txt'
+[3.890s] writing manifest file 'aic_training_interfaces.egg-info/SOURCES.txt'
+[3.931s] [ 11%] Built target ament_cmake_python_build_aic_training_interfaces_egg
+[4.026s] [ 11%] Built target aic_training_interfaces__cpp
+[4.057s] [ 14%] [32mBuilding C object CMakeFiles/aic_training_interfaces__rosidl_generator_c.dir/rosidl_generator_c/aic_training_interfaces/srv/detail/expand_xacro__description.c.o[0m
+[4.058s] [ 17%] [32mBuilding C object CMakeFiles/aic_training_interfaces__rosidl_generator_c.dir/rosidl_generator_c/aic_training_interfaces/srv/detail/expand_xacro__type_support.c.o[0m
+[4.059s] [ 20%] [32mBuilding C object CMakeFiles/aic_training_interfaces__rosidl_generator_c.dir/rosidl_generator_c/aic_training_interfaces/srv/detail/expand_xacro__functions.c.o[0m
+[4.146s] [ 22%] [1m[32mLinking C shared library libaic_training_interfaces__rosidl_generator_c.so[0m
+[4.175s] [ 22%] Built target aic_training_interfaces__rosidl_generator_c
+[4.180s] [ 31%] [1m[34mGenerating C introspection for ROS interfaces[0m
+[4.181s] [ 31%] [1m[34mGenerating C type support for eProsima Fast-RTPS[0m
+[4.181s] [ 31%] [1m[34mGenerating C type support dispatch for ROS interfaces[0m
+[4.181s] [ 34%] [1m[34mGenerating C++ introspection for ROS interfaces[0m
+[4.181s] [ 37%] [1m[34mGenerating C++ type support dispatch for ROS interfaces[0m
+[4.183s] [ 40%] [1m[34mGenerating C++ type support for eProsima Fast-RTPS[0m
+[4.562s] [ 42%] [32mBuilding CXX object CMakeFiles/aic_training_interfaces__rosidl_typesupport_c.dir/rosidl_typesupport_c/aic_training_interfaces/srv/expand_xacro__type_support.cpp.o[0m
+[4.578s] [ 45%] [32mBuilding C object CMakeFiles/aic_training_interfaces__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/aic_training_interfaces/srv/detail/expand_xacro__type_support.c.o[0m
+[4.578s] [ 48%] [32mBuilding CXX object CMakeFiles/aic_training_interfaces__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/aic_training_interfaces/srv/expand_xacro__type_support.cpp.o[0m
+[4.579s] [ 51%] [32mBuilding CXX object CMakeFiles/aic_training_interfaces__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/aic_training_interfaces/srv/detail/expand_xacro__type_support.cpp.o[0m
+[4.674s] [ 54%] [1m[32mLinking CXX shared library libaic_training_interfaces__rosidl_typesupport_c.so[0m
+[4.677s] [ 57%] [1m[32mLinking C shared library libaic_training_interfaces__rosidl_typesupport_introspection_c.so[0m
+[4.700s] [ 60%] [32mBuilding CXX object CMakeFiles/aic_training_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/aic_training_interfaces/srv/detail/dds_fastrtps/expand_xacro__type_support.cpp.o[0m
+[4.711s] [ 60%] Built target aic_training_interfaces__rosidl_typesupport_introspection_c
+[4.725s] [ 60%] Built target aic_training_interfaces__rosidl_typesupport_c
+[4.766s] [ 62%] [32mBuilding CXX object CMakeFiles/aic_training_interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aic_training_interfaces/srv/detail/expand_xacro__type_support_c.cpp.o[0m
+[5.491s] [ 65%] [1m[32mLinking CXX shared library libaic_training_interfaces__rosidl_typesupport_cpp.so[0m
+[5.548s] [ 68%] [1m[32mLinking CXX shared library libaic_training_interfaces__rosidl_typesupport_fastrtps_c.so[0m
+[5.688s] [ 68%] Built target aic_training_interfaces__rosidl_typesupport_cpp
+[5.748s] [ 68%] Built target aic_training_interfaces__rosidl_typesupport_fastrtps_c
+[5.762s] [ 71%] [1m[32mLinking CXX shared library libaic_training_interfaces__rosidl_typesupport_fastrtps_cpp.so[0m
+[5.820s] [ 74%] [1m[32mLinking CXX shared library libaic_training_interfaces__rosidl_typesupport_introspection_cpp.so[0m
+[5.885s] [ 74%] Built target aic_training_interfaces__rosidl_typesupport_fastrtps_cpp
+[5.990s] [ 74%] Built target aic_training_interfaces__rosidl_typesupport_introspection_cpp
+[6.013s] [ 74%] Built target aic_training_interfaces
+[6.036s] [ 77%] [1m[34mGenerating Python code for ROS interfaces[0m
+[6.945s] [ 77%] Built target aic_training_interfaces__py
+[6.963s] [ 80%] [32mBuilding C object CMakeFiles/aic_training_interfaces__rosidl_generator_py.dir/rosidl_generator_py/aic_training_interfaces/srv/_expand_xacro_s.c.o[0m
+[7.442s] [ 82%] [1m[32mLinking C shared library libaic_training_interfaces__rosidl_generator_py.so[0m
+[7.516s] [ 82%] Built target aic_training_interfaces__rosidl_generator_py
+[7.541s] [ 85%] [32mBuilding C object CMakeFiles/aic_training_interfaces_s__rosidl_typesupport_fastrtps_c.dir/rosidl_generator_py/aic_training_interfaces/_aic_training_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c.o[0m
+[7.544s] [ 88%] [32mBuilding C object CMakeFiles/aic_training_interfaces_s__rosidl_typesupport_c.dir/rosidl_generator_py/aic_training_interfaces/_aic_training_interfaces_s.ep.rosidl_typesupport_c.c.o[0m
+[7.548s] [ 91%] [32mBuilding C object CMakeFiles/aic_training_interfaces_s__rosidl_typesupport_introspection_c.dir/rosidl_generator_py/aic_training_interfaces/_aic_training_interfaces_s.ep.rosidl_typesupport_introspection_c.c.o[0m
+[7.734s] [ 94%] [1m[32mLinking C shared module rosidl_generator_py/aic_training_interfaces/aic_training_interfaces_s__rosidl_typesupport_c.so[0m
+[7.750s] [ 97%] [1m[32mLinking C shared module rosidl_generator_py/aic_training_interfaces/aic_training_interfaces_s__rosidl_typesupport_fastrtps_c.so[0m
+[7.796s] [ 97%] Built target aic_training_interfaces_s__rosidl_typesupport_c
+[7.806s] [ 97%] Built target aic_training_interfaces_s__rosidl_typesupport_fastrtps_c
+[7.879s] [100%] [1m[32mLinking C shared module rosidl_generator_py/aic_training_interfaces/aic_training_interfaces_s__rosidl_typesupport_introspection_c.so[0m
+[7.930s] [100%] Built target aic_training_interfaces_s__rosidl_typesupport_introspection_c
+[7.948s] Invoked command in '/home/damien/ws_aic/src/aic/build/aic_training_interfaces' returned '0': CMAKE_PREFIX_PATH=/home/damien/ws_aic/src/aic/.pixi/envs/default CONDA_PROMPT_MODIFIER=(base) DEBUGINFOD_URLS=https://debuginfod.ubuntu.com PIXI_PROMPT=(aic) PS1=(aic) (base) \[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ /home/damien/ws_aic/src/aic/.pixi/envs/default/bin/cmake --build /home/damien/ws_aic/src/aic/build/aic_training_interfaces -- -j12 -l12
+[7.949s] Invoking command in '/home/damien/ws_aic/src/aic/build/aic_training_interfaces': CMAKE_PREFIX_PATH=/home/damien/ws_aic/src/aic/.pixi/envs/default CONDA_PROMPT_MODIFIER=(base) DEBUGINFOD_URLS=https://debuginfod.ubuntu.com PIXI_PROMPT=(aic) PS1=(aic) (base) \[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ /home/damien/ws_aic/src/aic/.pixi/envs/default/bin/cmake --install /home/damien/ws_aic/src/aic/build/aic_training_interfaces
+[8.303s] -- Install configuration: ""
+[8.306s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/ament_index/resource_index/rosidl_interfaces/aic_training_interfaces
+[8.307s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/srv/ExpandXacro.json
+[8.307s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/include/aic_training_interfaces/aic_training_interfaces
+[8.307s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/include/aic_training_interfaces/aic_training_interfaces/srv
+[8.307s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/include/aic_training_interfaces/aic_training_interfaces/srv/detail
+[8.307s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/include/aic_training_interfaces/aic_training_interfaces/srv/detail/expand_xacro__struct.h
+[8.307s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/include/aic_training_interfaces/aic_training_interfaces/srv/detail/expand_xacro__functions.c
+[8.307s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/include/aic_training_interfaces/aic_training_interfaces/srv/detail/expand_xacro__functions.h
+[8.307s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/include/aic_training_interfaces/aic_training_interfaces/srv/detail/expand_xacro__type_support.c
+[8.307s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/include/aic_training_interfaces/aic_training_interfaces/srv/detail/expand_xacro__description.c
+[8.307s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/include/aic_training_interfaces/aic_training_interfaces/srv/detail/expand_xacro__type_support.h
+[8.308s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/include/aic_training_interfaces/aic_training_interfaces/srv/expand_xacro.h
+[8.308s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/include/aic_training_interfaces/aic_training_interfaces/msg
+[8.308s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/include/aic_training_interfaces/aic_training_interfaces/msg/rosidl_generator_c__visibility_control.h
+[8.308s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/environment/library_path.sh
+[8.308s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/environment/library_path.dsv
+[8.308s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/lib/libaic_training_interfaces__rosidl_generator_c.so
+[8.308s] -- Set non-toolchain portion of runtime path of "/home/damien/ws_aic/src/aic/install/aic_training_interfaces/lib/libaic_training_interfaces__rosidl_generator_c.so" to ""
+[8.308s] -- Up-to-date: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/include/aic_training_interfaces/aic_training_interfaces
+[8.308s] -- Up-to-date: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/include/aic_training_interfaces/aic_training_interfaces/srv
+[8.308s] -- Up-to-date: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/include/aic_training_interfaces/aic_training_interfaces/srv/detail
+[8.308s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/include/aic_training_interfaces/aic_training_interfaces/srv/detail/expand_xacro__rosidl_typesupport_fastrtps_c.h
+[8.309s] -- Up-to-date: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/include/aic_training_interfaces/aic_training_interfaces/msg
+[8.309s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/include/aic_training_interfaces/aic_training_interfaces/msg/rosidl_typesupport_fastrtps_c__visibility_control.h
+[8.309s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/lib/libaic_training_interfaces__rosidl_typesupport_fastrtps_c.so
+[8.309s] -- Set non-toolchain portion of runtime path of "/home/damien/ws_aic/src/aic/install/aic_training_interfaces/lib/libaic_training_interfaces__rosidl_typesupport_fastrtps_c.so" to ""
+[8.309s] -- Up-to-date: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/include/aic_training_interfaces/aic_training_interfaces
+[8.309s] -- Up-to-date: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/include/aic_training_interfaces/aic_training_interfaces/srv
+[8.309s] -- Up-to-date: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/include/aic_training_interfaces/aic_training_interfaces/srv/detail
+[8.309s] -- Up-to-date: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/include/aic_training_interfaces/aic_training_interfaces/srv/detail/expand_xacro__type_support.c
+[8.309s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/include/aic_training_interfaces/aic_training_interfaces/srv/detail/expand_xacro__rosidl_typesupport_introspection_c.h
+[8.309s] -- Up-to-date: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/include/aic_training_interfaces/aic_training_interfaces/msg
+[8.309s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/include/aic_training_interfaces/aic_training_interfaces/msg/rosidl_typesupport_introspection_c__visibility_control.h
+[8.309s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/lib/libaic_training_interfaces__rosidl_typesupport_introspection_c.so
+[8.310s] -- Set non-toolchain portion of runtime path of "/home/damien/ws_aic/src/aic/install/aic_training_interfaces/lib/libaic_training_interfaces__rosidl_typesupport_introspection_c.so" to ""
+[8.310s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/lib/libaic_training_interfaces__rosidl_typesupport_c.so
+[8.310s] -- Set non-toolchain portion of runtime path of "/home/damien/ws_aic/src/aic/install/aic_training_interfaces/lib/libaic_training_interfaces__rosidl_typesupport_c.so" to ""
+[8.310s] -- Up-to-date: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/include/aic_training_interfaces/aic_training_interfaces
+[8.310s] -- Up-to-date: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/include/aic_training_interfaces/aic_training_interfaces/srv
+[8.310s] -- Up-to-date: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/include/aic_training_interfaces/aic_training_interfaces/srv/detail
+[8.310s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/include/aic_training_interfaces/aic_training_interfaces/srv/detail/expand_xacro__traits.hpp
+[8.314s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/include/aic_training_interfaces/aic_training_interfaces/srv/detail/expand_xacro__builder.hpp
+[8.314s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/include/aic_training_interfaces/aic_training_interfaces/srv/detail/expand_xacro__struct.hpp
+[8.314s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/include/aic_training_interfaces/aic_training_interfaces/srv/detail/expand_xacro__type_support.hpp
+[8.314s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/include/aic_training_interfaces/aic_training_interfaces/srv/expand_xacro.hpp
+[8.314s] -- Up-to-date: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/include/aic_training_interfaces/aic_training_interfaces/msg
+[8.314s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/include/aic_training_interfaces/aic_training_interfaces/msg/rosidl_generator_cpp__visibility_control.hpp
+[8.314s] -- Up-to-date: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/include/aic_training_interfaces/aic_training_interfaces
+[8.314s] -- Up-to-date: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/include/aic_training_interfaces/aic_training_interfaces/srv
+[8.314s] -- Up-to-date: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/include/aic_training_interfaces/aic_training_interfaces/srv/detail
+[8.314s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/include/aic_training_interfaces/aic_training_interfaces/srv/detail/expand_xacro__rosidl_typesupport_fastrtps_cpp.hpp
+[8.314s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/include/aic_training_interfaces/aic_training_interfaces/srv/detail/dds_fastrtps
+[8.314s] -- Up-to-date: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/include/aic_training_interfaces/aic_training_interfaces/msg
+[8.315s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/include/aic_training_interfaces/aic_training_interfaces/msg/rosidl_typesupport_fastrtps_cpp__visibility_control.h
+[8.315s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/lib/libaic_training_interfaces__rosidl_typesupport_fastrtps_cpp.so
+[8.315s] -- Set non-toolchain portion of runtime path of "/home/damien/ws_aic/src/aic/install/aic_training_interfaces/lib/libaic_training_interfaces__rosidl_typesupport_fastrtps_cpp.so" to ""
+[8.315s] -- Up-to-date: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/include/aic_training_interfaces/aic_training_interfaces
+[8.315s] -- Up-to-date: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/include/aic_training_interfaces/aic_training_interfaces/srv
+[8.315s] -- Up-to-date: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/include/aic_training_interfaces/aic_training_interfaces/srv/detail
+[8.315s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/include/aic_training_interfaces/aic_training_interfaces/srv/detail/expand_xacro__type_support.cpp
+[8.315s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/include/aic_training_interfaces/aic_training_interfaces/srv/detail/expand_xacro__rosidl_typesupport_introspection_cpp.hpp
+[8.315s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/lib/libaic_training_interfaces__rosidl_typesupport_introspection_cpp.so
+[8.315s] -- Set non-toolchain portion of runtime path of "/home/damien/ws_aic/src/aic/install/aic_training_interfaces/lib/libaic_training_interfaces__rosidl_typesupport_introspection_cpp.so" to ""
+[8.315s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/lib/libaic_training_interfaces__rosidl_typesupport_cpp.so
+[8.315s] -- Set non-toolchain portion of runtime path of "/home/damien/ws_aic/src/aic/install/aic_training_interfaces/lib/libaic_training_interfaces__rosidl_typesupport_cpp.so" to ""
+[8.315s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/environment/pythonpath.sh
+[8.315s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/environment/pythonpath.dsv
+[8.315s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/lib/python3.12/site-packages/aic_training_interfaces-0.0.1-py3.12.egg-info
+[8.316s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/lib/python3.12/site-packages/aic_training_interfaces-0.0.1-py3.12.egg-info/PKG-INFO
+[8.316s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/lib/python3.12/site-packages/aic_training_interfaces-0.0.1-py3.12.egg-info/SOURCES.txt
+[8.316s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/lib/python3.12/site-packages/aic_training_interfaces-0.0.1-py3.12.egg-info/dependency_links.txt
+[8.316s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/lib/python3.12/site-packages/aic_training_interfaces-0.0.1-py3.12.egg-info/top_level.txt
+[8.316s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/lib/python3.12/site-packages/aic_training_interfaces
+[8.316s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/lib/python3.12/site-packages/aic_training_interfaces/aic_training_interfaces_s__rosidl_typesupport_fastrtps_c.so
+[8.316s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/lib/python3.12/site-packages/aic_training_interfaces/__init__.py
+[8.316s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/lib/python3.12/site-packages/aic_training_interfaces/_aic_training_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c
+[8.316s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/lib/python3.12/site-packages/aic_training_interfaces/_aic_training_interfaces_s.ep.rosidl_typesupport_introspection_c.c
+[8.316s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/lib/python3.12/site-packages/aic_training_interfaces/_aic_training_interfaces_s.ep.rosidl_typesupport_c.c
+[8.316s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/lib/python3.12/site-packages/aic_training_interfaces/aic_training_interfaces_s__rosidl_typesupport_c.so
+[8.316s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/lib/python3.12/site-packages/aic_training_interfaces/srv
+[8.320s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/lib/python3.12/site-packages/aic_training_interfaces/srv/__init__.py
+[8.320s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/lib/python3.12/site-packages/aic_training_interfaces/srv/_expand_xacro.py
+[8.320s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/lib/python3.12/site-packages/aic_training_interfaces/srv/_expand_xacro_s.c
+[8.320s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/lib/python3.12/site-packages/aic_training_interfaces/aic_training_interfaces_s__rosidl_typesupport_introspection_c.so
+[8.370s] Listing '/home/damien/ws_aic/src/aic/install/aic_training_interfaces/lib/python3.12/site-packages/aic_training_interfaces'...
+[8.370s] Compiling '/home/damien/ws_aic/src/aic/install/aic_training_interfaces/lib/python3.12/site-packages/aic_training_interfaces/__init__.py'...
+[8.370s] Listing '/home/damien/ws_aic/src/aic/install/aic_training_interfaces/lib/python3.12/site-packages/aic_training_interfaces/srv'...
+[8.371s] Compiling '/home/damien/ws_aic/src/aic/install/aic_training_interfaces/lib/python3.12/site-packages/aic_training_interfaces/srv/__init__.py'...
+[8.371s] Compiling '/home/damien/ws_aic/src/aic/install/aic_training_interfaces/lib/python3.12/site-packages/aic_training_interfaces/srv/_expand_xacro.py'...
+[8.382s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/lib/python3.12/site-packages/aic_training_interfaces/aic_training_interfaces_s__rosidl_typesupport_fastrtps_c.so
+[8.383s] -- Set non-toolchain portion of runtime path of "/home/damien/ws_aic/src/aic/install/aic_training_interfaces/lib/python3.12/site-packages/aic_training_interfaces/aic_training_interfaces_s__rosidl_typesupport_fastrtps_c.so" to ""
+[8.383s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/lib/python3.12/site-packages/aic_training_interfaces/aic_training_interfaces_s__rosidl_typesupport_introspection_c.so
+[8.383s] -- Set non-toolchain portion of runtime path of "/home/damien/ws_aic/src/aic/install/aic_training_interfaces/lib/python3.12/site-packages/aic_training_interfaces/aic_training_interfaces_s__rosidl_typesupport_introspection_c.so" to ""
+[8.384s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/lib/python3.12/site-packages/aic_training_interfaces/aic_training_interfaces_s__rosidl_typesupport_c.so
+[8.387s] -- Set non-toolchain portion of runtime path of "/home/damien/ws_aic/src/aic/install/aic_training_interfaces/lib/python3.12/site-packages/aic_training_interfaces/aic_training_interfaces_s__rosidl_typesupport_c.so" to ""
+[8.388s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/lib/libaic_training_interfaces__rosidl_generator_py.so
+[8.388s] -- Set non-toolchain portion of runtime path of "/home/damien/ws_aic/src/aic/install/aic_training_interfaces/lib/libaic_training_interfaces__rosidl_generator_py.so" to ""
+[8.389s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/ament_index/resource_index/rust_packages/aic_training_interfaces
+[8.389s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/rust
+[8.389s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/rust/Cargo.toml
+[8.390s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/rust/src
+[8.390s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/rust/src/lib.rs
+[8.391s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/rust/src/srv.rs
+[8.395s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/rust/src/srv
+[8.395s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/rust/src/srv/rmw.rs
+[8.395s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/rust/build.rs
+[8.395s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/srv/ExpandXacro.idl
+[8.395s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/srv/ExpandXacro.srv
+[8.395s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/ament_index/resource_index/package_run_dependencies/aic_training_interfaces
+[8.395s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/ament_index/resource_index/parent_prefix_path/aic_training_interfaces
+[8.395s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/environment/ament_prefix_path.sh
+[8.395s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/environment/ament_prefix_path.dsv
+[8.395s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/environment/path.sh
+[8.395s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/environment/path.dsv
+[8.395s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/local_setup.bash
+[8.395s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/local_setup.sh
+[8.395s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/local_setup.zsh
+[8.396s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/local_setup.dsv
+[8.396s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/package.dsv
+[8.396s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/ament_index/resource_index/packages/aic_training_interfaces
+[8.396s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/cmake/export_aic_training_interfaces__rosidl_generator_cExport.cmake
+[8.396s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/cmake/export_aic_training_interfaces__rosidl_generator_cExport-noconfig.cmake
+[8.396s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/cmake/export_aic_training_interfaces__rosidl_typesupport_fastrtps_cExport.cmake
+[8.396s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/cmake/export_aic_training_interfaces__rosidl_typesupport_fastrtps_cExport-noconfig.cmake
+[8.396s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/cmake/aic_training_interfaces__rosidl_typesupport_introspection_cExport.cmake
+[8.396s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/cmake/aic_training_interfaces__rosidl_typesupport_introspection_cExport-noconfig.cmake
+[8.396s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/cmake/aic_training_interfaces__rosidl_typesupport_cExport.cmake
+[8.396s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/cmake/aic_training_interfaces__rosidl_typesupport_cExport-noconfig.cmake
+[8.396s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/cmake/export_aic_training_interfaces__rosidl_generator_cppExport.cmake
+[8.396s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/cmake/export_aic_training_interfaces__rosidl_typesupport_fastrtps_cppExport.cmake
+[8.397s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/cmake/export_aic_training_interfaces__rosidl_typesupport_fastrtps_cppExport-noconfig.cmake
+[8.397s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/cmake/aic_training_interfaces__rosidl_typesupport_introspection_cppExport.cmake
+[8.397s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/cmake/aic_training_interfaces__rosidl_typesupport_introspection_cppExport-noconfig.cmake
+[8.397s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/cmake/aic_training_interfaces__rosidl_typesupport_cppExport.cmake
+[8.397s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/cmake/aic_training_interfaces__rosidl_typesupport_cppExport-noconfig.cmake
+[8.397s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/cmake/export_aic_training_interfaces__rosidl_generator_pyExport.cmake
+[8.397s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/cmake/export_aic_training_interfaces__rosidl_generator_pyExport-noconfig.cmake
+[8.397s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/cmake/rosidl_cmake-extras.cmake
+[8.397s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/cmake/ament_cmake_export_dependencies-extras.cmake
+[8.397s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/cmake/ament_cmake_export_include_directories-extras.cmake
+[8.397s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/cmake/ament_cmake_export_libraries-extras.cmake
+[8.397s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/cmake/ament_cmake_export_targets-extras.cmake
+[8.397s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/cmake/rosidl_cmake_export_typesupport_targets-extras.cmake
+[8.401s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/cmake/rosidl_cmake_export_typesupport_libraries-extras.cmake
+[8.401s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/cmake/aic_training_interfacesConfig.cmake
+[8.401s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/cmake/aic_training_interfacesConfig-version.cmake
+[8.401s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_training_interfaces/share/aic_training_interfaces/package.xml
+[8.407s] Invoked command in '/home/damien/ws_aic/src/aic/build/aic_training_interfaces' returned '0': CMAKE_PREFIX_PATH=/home/damien/ws_aic/src/aic/.pixi/envs/default CONDA_PROMPT_MODIFIER=(base) DEBUGINFOD_URLS=https://debuginfod.ubuntu.com PIXI_PROMPT=(aic) PS1=(aic) (base) \[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ /home/damien/ws_aic/src/aic/.pixi/envs/default/bin/cmake --install /home/damien/ws_aic/src/aic/build/aic_training_interfaces

@@ -1,0 +1,117 @@
+[0.015s] Invoking command in '/home/damien/ws_aic/src/aic/build/aic_task_interfaces': CMAKE_PREFIX_PATH=/home/damien/ws_aic/src/aic/.pixi/envs/default CONDA_PROMPT_MODIFIER=(base) DEBUGINFOD_URLS=https://debuginfod.ubuntu.com PIXI_PROMPT=(aic) PS1=(aic) (base) \[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ /home/damien/ws_aic/src/aic/.pixi/envs/default/bin/cmake /home/damien/ws_aic/src/aic/aic_interfaces/aic_task_interfaces -DCMAKE_INSTALL_PREFIX=/home/damien/ws_aic/src/aic/install/aic_task_interfaces
+[0.208s] [0mCMake Deprecation Warning at CMakeLists.txt:1 (cmake_minimum_required):
+[0.208s]   Compatibility with CMake < 3.10 will be removed from a future version of
+[0.209s]   CMake.
+[0.209s] 
+[0.209s]   Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+[0.209s]   to tell CMake that the project requires at least <min> but has been updated
+[0.209s]   to work with policies introduced by <max> or earlier.
+[0.209s] 
+[0.209s] [0m
+[0.334s] -- The C compiler identification is GNU 13.3.0
+[0.454s] -- The CXX compiler identification is GNU 13.3.0
+[0.465s] -- Detecting C compiler ABI info
+[0.524s] -- Detecting C compiler ABI info - done
+[0.546s] -- Check for working C compiler: /usr/bin/cc - skipped
+[0.546s] -- Detecting C compile features
+[0.547s] -- Detecting C compile features - done
+[0.555s] -- Detecting CXX compiler ABI info
+[0.626s] -- Detecting CXX compiler ABI info - done
+[0.645s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[0.645s] -- Detecting CXX compile features
+[0.645s] -- Detecting CXX compile features - done
+[0.653s] -- Found ament_cmake: 2.7.5 (/home/damien/ws_aic/src/aic/.pixi/envs/default/share/ament_cmake/cmake)
+[0.816s] -- Found Python3: /home/damien/ws_aic/src/aic/.pixi/envs/default/bin/python3 (found version "3.12.13") found components: Interpreter
+[0.919s] -- Found builtin_interfaces: 2.3.1 (/home/damien/ws_aic/src/aic/.pixi/envs/default/share/builtin_interfaces/cmake)
+[0.948s] -- Found rosidl_generator_c: 4.9.6 (/home/damien/ws_aic/src/aic/.pixi/envs/default/share/rosidl_generator_c/cmake)
+[0.962s] -- Found rosidl_generator_cpp: 4.9.6 (/home/damien/ws_aic/src/aic/.pixi/envs/default/share/rosidl_generator_cpp/cmake)
+[0.979s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[0.999s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[1.018s] -- Found rosidl_default_generators: 1.7.2 (/home/damien/ws_aic/src/aic/.pixi/envs/default/share/rosidl_default_generators/cmake)
+[1.037s] -- Found rosidl_adapter: 4.9.6 (/home/damien/ws_aic/src/aic/.pixi/envs/default/share/rosidl_adapter/cmake)
+[1.603s] -- Found ament_cmake_cppcheck: 0.19.2 (/home/damien/ws_aic/src/aic/.pixi/envs/default/share/ament_cmake_cppcheck/cmake)
+[1.606s] -- Found ament_cmake_cpplint: 0.19.2 (/home/damien/ws_aic/src/aic/.pixi/envs/default/share/ament_cmake_cpplint/cmake)
+[1.609s] -- Found ament_cmake_uncrustify: 0.19.2 (/home/damien/ws_aic/src/aic/.pixi/envs/default/share/ament_cmake_uncrustify/cmake)
+[1.612s] -- Found ament_cmake_ros_core: 0.14.7 (/home/damien/ws_aic/src/aic/.pixi/envs/default/share/ament_cmake_ros_core/cmake)
+[2.186s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[2.394s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[3.138s] -- Found Python3: /home/damien/ws_aic/src/aic/.pixi/envs/default/bin/python3 (found version "3.12.13") found components: Interpreter Development NumPy Development.Module Development.Embed
+[3.172s] -- Found ament_cmake_flake8: 0.19.2 (/home/damien/ws_aic/src/aic/.pixi/envs/default/share/ament_cmake_flake8/cmake)
+[3.176s] -- Found ament_cmake_pep257: 0.19.2 (/home/damien/ws_aic/src/aic/.pixi/envs/default/share/ament_cmake_pep257/cmake)
+[3.207s] -- Found Python3: /home/damien/ws_aic/src/aic/.pixi/envs/default/bin/python3 (found version "3.12.13") found components: Interpreter
+[3.219s] -- Configuring done (3.0s)
+[3.284s] -- Generating done (0.1s)
+[3.291s] -- Build files have been written to: /home/damien/ws_aic/src/aic/build/aic_task_interfaces
+[3.302s] Invoked command in '/home/damien/ws_aic/src/aic/build/aic_task_interfaces' returned '0': CMAKE_PREFIX_PATH=/home/damien/ws_aic/src/aic/.pixi/envs/default CONDA_PROMPT_MODIFIER=(base) DEBUGINFOD_URLS=https://debuginfod.ubuntu.com PIXI_PROMPT=(aic) PS1=(aic) (base) \[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ /home/damien/ws_aic/src/aic/.pixi/envs/default/bin/cmake /home/damien/ws_aic/src/aic/aic_interfaces/aic_task_interfaces -DCMAKE_INSTALL_PREFIX=/home/damien/ws_aic/src/aic/install/aic_task_interfaces
+[3.303s] Invoking command in '/home/damien/ws_aic/src/aic/build/aic_task_interfaces': CMAKE_PREFIX_PATH=/home/damien/ws_aic/src/aic/.pixi/envs/default CONDA_PROMPT_MODIFIER=(base) DEBUGINFOD_URLS=https://debuginfod.ubuntu.com PIXI_PROMPT=(aic) PS1=(aic) (base) \[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ /home/damien/ws_aic/src/aic/.pixi/envs/default/bin/cmake --build /home/damien/ws_aic/src/aic/build/aic_task_interfaces -- -j12 -l12
+[3.429s] [  4%] [1m[34mGenerating Rust code for ROS interfaces[0m
+[3.429s] [  4%] [1m[34mGenerating type hashes for ROS interfaces[0m
+[3.436s] [  4%] Built target ament_cmake_python_copy_aic_task_interfaces
+[3.740s] running egg_info
+[3.756s] creating aic_task_interfaces.egg-info
+[3.756s] writing aic_task_interfaces.egg-info/PKG-INFO
+[3.756s] writing dependency_links to aic_task_interfaces.egg-info/dependency_links.txt
+[3.756s] writing top-level names to aic_task_interfaces.egg-info/top_level.txt
+[3.756s] writing manifest file 'aic_task_interfaces.egg-info/SOURCES.txt'
+[3.808s] reading manifest file 'aic_task_interfaces.egg-info/SOURCES.txt'
+[3.810s] writing manifest file 'aic_task_interfaces.egg-info/SOURCES.txt'
+[3.836s] [  4%] Built target aic_task_interfaces__rosidl_generator_type_description
+[3.843s] [  6%] [1m[34mGenerating C code for ROS interfaces[0m
+[3.849s] [  8%] [1m[34mGenerating C++ code for ROS interfaces[0m
+[3.861s] [  8%] Built target ament_cmake_python_build_aic_task_interfaces_egg
+[3.887s] [  8%] Built target aic_task_interfaces__rs
+[4.562s] [  8%] Built target aic_task_interfaces__cpp
+[4.738s] [ 11%] [32mBuilding C object CMakeFiles/aic_task_interfaces__rosidl_generator_c.dir/rosidl_generator_c/aic_task_interfaces/msg/detail/task__description.c.o[0m
+[4.738s] [ 13%] [32mBuilding C object CMakeFiles/aic_task_interfaces__rosidl_generator_c.dir/rosidl_generator_c/aic_task_interfaces/msg/detail/task__functions.c.o[0m
+[4.740s] [ 15%] [32mBuilding C object CMakeFiles/aic_task_interfaces__rosidl_generator_c.dir/rosidl_generator_c/aic_task_interfaces/msg/detail/task__type_support.c.o[0m
+[4.751s] [ 17%] [32mBuilding C object CMakeFiles/aic_task_interfaces__rosidl_generator_c.dir/rosidl_generator_c/aic_task_interfaces/action/detail/insert_cable__functions.c.o[0m
+[4.756s] [ 20%] [32mBuilding C object CMakeFiles/aic_task_interfaces__rosidl_generator_c.dir/rosidl_generator_c/aic_task_interfaces/action/detail/insert_cable__type_support.c.o[0m
+[4.756s] [ 22%] [32mBuilding C object CMakeFiles/aic_task_interfaces__rosidl_generator_c.dir/rosidl_generator_c/aic_task_interfaces/action/detail/insert_cable__description.c.o[0m
+[4.999s] [ 24%] [1m[32mLinking C shared library libaic_task_interfaces__rosidl_generator_c.so[0m
+[5.035s] [ 24%] Built target aic_task_interfaces__rosidl_generator_c
+[5.046s] [ 26%] [1m[34mGenerating C type support dispatch for ROS interfaces[0m
+[5.046s] [ 28%] [1m[34mGenerating C++ introspection for ROS interfaces[0m
+[5.050s] [ 31%] [1m[34mGenerating C++ type support for eProsima Fast-RTPS[0m
+[5.050s] [ 33%] [1m[34mGenerating C introspection for ROS interfaces[0m
+[5.059s] [ 35%] [1m[34mGenerating C type support for eProsima Fast-RTPS[0m
+[5.065s] [ 37%] [1m[34mGenerating C++ type support dispatch for ROS interfaces[0m
+[5.677s] [ 42%] [32mBuilding C object CMakeFiles/aic_task_interfaces__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/aic_task_interfaces/msg/detail/task__type_support.c.o[0m
+[5.678s] [ 40%] [32mBuilding C object CMakeFiles/aic_task_interfaces__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/aic_task_interfaces/action/detail/insert_cable__type_support.c.o[0m
+[5.771s] [ 44%] [32mBuilding CXX object CMakeFiles/aic_task_interfaces__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/aic_task_interfaces/msg/task__type_support.cpp.o[0m
+[5.771s] [ 46%] [32mBuilding CXX object CMakeFiles/aic_task_interfaces__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/aic_task_interfaces/action/insert_cable__type_support.cpp.o[0m
+[5.862s] [ 48%] [1m[32mLinking C shared library libaic_task_interfaces__rosidl_typesupport_introspection_c.so[0m
+[5.896s] [ 48%] Built target aic_task_interfaces__rosidl_typesupport_introspection_c
+[5.966s] [ 51%] [32mBuilding CXX object CMakeFiles/aic_task_interfaces__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/aic_task_interfaces/msg/detail/task__type_support.cpp.o[0m
+[5.971s] [ 53%] [32mBuilding CXX object CMakeFiles/aic_task_interfaces__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/aic_task_interfaces/action/detail/insert_cable__type_support.cpp.o[0m
+[5.974s] [ 57%] [32mBuilding CXX object CMakeFiles/aic_task_interfaces__rosidl_typesupport_c.dir/rosidl_typesupport_c/aic_task_interfaces/msg/task__type_support.cpp.o[0m
+[5.974s] [ 57%] [32mBuilding CXX object CMakeFiles/aic_task_interfaces__rosidl_typesupport_c.dir/rosidl_typesupport_c/aic_task_interfaces/action/insert_cable__type_support.cpp.o[0m
+[6.130s] [ 60%] [1m[32mLinking CXX shared library libaic_task_interfaces__rosidl_typesupport_c.so[0m
+[6.146s] [ 62%] [32mBuilding CXX object CMakeFiles/aic_task_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/aic_task_interfaces/msg/detail/dds_fastrtps/task__type_support.cpp.o[0m
+[6.146s] [ 64%] [32mBuilding CXX object CMakeFiles/aic_task_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/aic_task_interfaces/action/detail/dds_fastrtps/insert_cable__type_support.cpp.o[0m
+[6.160s] [ 66%] [32mBuilding CXX object CMakeFiles/aic_task_interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aic_task_interfaces/msg/detail/task__type_support_c.cpp.o[0m
+[6.165s] [ 68%] [32mBuilding CXX object CMakeFiles/aic_task_interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aic_task_interfaces/action/detail/insert_cable__type_support_c.cpp.o[0m
+[6.219s] [ 68%] Built target aic_task_interfaces__rosidl_typesupport_c
+[7.113s] [ 71%] [1m[32mLinking CXX shared library libaic_task_interfaces__rosidl_typesupport_cpp.so[0m
+[7.248s] [ 71%] Built target aic_task_interfaces__rosidl_typesupport_cpp
+[7.280s] [ 73%] [1m[32mLinking CXX shared library libaic_task_interfaces__rosidl_typesupport_fastrtps_c.so[0m
+[7.513s] [ 73%] Built target aic_task_interfaces__rosidl_typesupport_fastrtps_c
+[7.550s] [ 75%] [1m[32mLinking CXX shared library libaic_task_interfaces__rosidl_typesupport_introspection_cpp.so[0m
+[7.767s] [ 75%] Built target aic_task_interfaces__rosidl_typesupport_introspection_cpp
+[8.489s] [ 77%] [1m[32mLinking CXX shared library libaic_task_interfaces__rosidl_typesupport_fastrtps_cpp.so[0m
+[8.587s] [ 77%] Built target aic_task_interfaces__rosidl_typesupport_fastrtps_cpp
+[8.595s] [ 77%] Built target aic_task_interfaces
+[8.602s] [ 80%] [1m[34mGenerating Python code for ROS interfaces[0m
+[9.139s] [ 80%] Built target aic_task_interfaces__py
+[9.149s] [ 82%] [32mBuilding C object CMakeFiles/aic_task_interfaces__rosidl_generator_py.dir/rosidl_generator_py/aic_task_interfaces/msg/_task_s.c.o[0m
+[9.151s] [ 84%] [32mBuilding C object CMakeFiles/aic_task_interfaces__rosidl_generator_py.dir/rosidl_generator_py/aic_task_interfaces/action/_insert_cable_s.c.o[0m
+[9.301s] [ 86%] [1m[32mLinking C shared library libaic_task_interfaces__rosidl_generator_py.so[0m
+[9.330s] [ 86%] Built target aic_task_interfaces__rosidl_generator_py
+[9.338s] [ 88%] [32mBuilding C object CMakeFiles/aic_task_interfaces_s__rosidl_typesupport_c.dir/rosidl_generator_py/aic_task_interfaces/_aic_task_interfaces_s.ep.rosidl_typesupport_c.c.o[0m
+[9.339s] [ 91%] [32mBuilding C object CMakeFiles/aic_task_interfaces_s__rosidl_typesupport_introspection_c.dir/rosidl_generator_py/aic_task_interfaces/_aic_task_interfaces_s.ep.rosidl_typesupport_introspection_c.c.o[0m
+[9.340s] [ 93%] [32mBuilding C object CMakeFiles/aic_task_interfaces_s__rosidl_typesupport_fastrtps_c.dir/rosidl_generator_py/aic_task_interfaces/_aic_task_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c.o[0m
+[9.429s] [ 95%] [1m[32mLinking C shared module rosidl_generator_py/aic_task_interfaces/aic_task_interfaces_s__rosidl_typesupport_c.so[0m
+[9.429s] [ 97%] [1m[32mLinking C shared module rosidl_generator_py/aic_task_interfaces/aic_task_interfaces_s__rosidl_typesupport_fastrtps_c.so[0m
+[9.444s] [ 97%] Built target aic_task_interfaces_s__rosidl_typesupport_c
+[9.447s] [ 97%] Built target aic_task_interfaces_s__rosidl_typesupport_fastrtps_c
+[9.484s] [100%] [1m[32mLinking C shared module rosidl_generator_py/aic_task_interfaces/aic_task_interfaces_s__rosidl_typesupport_introspection_c.so[0m
+[9.503s] [100%] Built target aic_task_interfaces_s__rosidl_typesupport_introspection_c

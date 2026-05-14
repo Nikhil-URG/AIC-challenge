@@ -1,0 +1,9 @@
+kpt_shape:
+- 17
+- 3
+names:
+  0: SC_SKL
+  1: SPF_SKL
+path: /home/jovyan/aic_pose_model
+train: train.txt
+val: val.txt

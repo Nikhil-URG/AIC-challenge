@@ -1,0 +1,155 @@
+[0.014s] Invoking command in '/home/damien/ws_aic/src/aic/build/aic_assets': CMAKE_PREFIX_PATH=/home/damien/ws_aic/src/aic/.pixi/envs/default CONDA_PROMPT_MODIFIER=(base) DEBUGINFOD_URLS=https://debuginfod.ubuntu.com PIXI_PROMPT=(aic) PS1=(aic) (base) \[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ /home/damien/ws_aic/src/aic/.pixi/envs/default/bin/cmake /home/damien/ws_aic/src/aic/aic_assets -DCMAKE_INSTALL_PREFIX=/home/damien/ws_aic/src/aic/install/aic_assets
+[0.205s] [0mCMake Deprecation Warning at CMakeLists.txt:1 (cmake_minimum_required):
+[0.206s]   Compatibility with CMake < 3.10 will be removed from a future version of
+[0.206s]   CMake.
+[0.206s] 
+[0.206s]   Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+[0.206s]   to tell CMake that the project requires at least <min> but has been updated
+[0.206s]   to work with policies introduced by <max> or earlier.
+[0.206s] 
+[0.206s] [0m
+[0.336s] -- The C compiler identification is GNU 13.3.0
+[0.451s] -- The CXX compiler identification is GNU 13.3.0
+[0.461s] -- Detecting C compiler ABI info
+[0.520s] -- Detecting C compiler ABI info - done
+[0.540s] -- Check for working C compiler: /usr/bin/cc - skipped
+[0.540s] -- Detecting C compile features
+[0.541s] -- Detecting C compile features - done
+[0.554s] -- Detecting CXX compiler ABI info
+[0.609s] -- Detecting CXX compiler ABI info - done
+[0.624s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[0.625s] -- Detecting CXX compile features
+[0.626s] -- Detecting CXX compile features - done
+[0.634s] -- Found ament_cmake: 2.7.5 (/home/damien/ws_aic/src/aic/.pixi/envs/default/share/ament_cmake/cmake)
+[0.754s] -- Found Python3: /home/damien/ws_aic/src/aic/.pixi/envs/default/bin/python3 (found version "3.12.13") found components: Interpreter
+[1.108s] -- Configuring done (0.9s)
+[1.113s] -- Generating done (0.0s)
+[1.116s] -- Build files have been written to: /home/damien/ws_aic/src/aic/build/aic_assets
+[1.122s] Invoked command in '/home/damien/ws_aic/src/aic/build/aic_assets' returned '0': CMAKE_PREFIX_PATH=/home/damien/ws_aic/src/aic/.pixi/envs/default CONDA_PROMPT_MODIFIER=(base) DEBUGINFOD_URLS=https://debuginfod.ubuntu.com PIXI_PROMPT=(aic) PS1=(aic) (base) \[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ /home/damien/ws_aic/src/aic/.pixi/envs/default/bin/cmake /home/damien/ws_aic/src/aic/aic_assets -DCMAKE_INSTALL_PREFIX=/home/damien/ws_aic/src/aic/install/aic_assets
+[1.123s] Invoking command in '/home/damien/ws_aic/src/aic/build/aic_assets': CMAKE_PREFIX_PATH=/home/damien/ws_aic/src/aic/.pixi/envs/default CONDA_PROMPT_MODIFIER=(base) DEBUGINFOD_URLS=https://debuginfod.ubuntu.com PIXI_PROMPT=(aic) PS1=(aic) (base) \[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ /home/damien/ws_aic/src/aic/.pixi/envs/default/bin/cmake --build /home/damien/ws_aic/src/aic/build/aic_assets -- -j12 -l12
+[1.229s] Invoked command in '/home/damien/ws_aic/src/aic/build/aic_assets' returned '0': CMAKE_PREFIX_PATH=/home/damien/ws_aic/src/aic/.pixi/envs/default CONDA_PROMPT_MODIFIER=(base) DEBUGINFOD_URLS=https://debuginfod.ubuntu.com PIXI_PROMPT=(aic) PS1=(aic) (base) \[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ /home/damien/ws_aic/src/aic/.pixi/envs/default/bin/cmake --build /home/damien/ws_aic/src/aic/build/aic_assets -- -j12 -l12
+[1.322s] Invoking command in '/home/damien/ws_aic/src/aic/build/aic_assets': CMAKE_PREFIX_PATH=/home/damien/ws_aic/src/aic/.pixi/envs/default CONDA_PROMPT_MODIFIER=(base) DEBUGINFOD_URLS=https://debuginfod.ubuntu.com PIXI_PROMPT=(aic) PS1=(aic) (base) \[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ /home/damien/ws_aic/src/aic/.pixi/envs/default/bin/cmake --install /home/damien/ws_aic/src/aic/build/aic_assets
+[1.440s] -- Install configuration: ""
+[1.440s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/environment/aic_assets.dsv
+[1.440s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models
+[1.440s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/NIC Card Mount
+[1.441s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/NIC Card Mount/nic_card_mount_visual.glb
+[1.444s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/NIC Card Mount/nic_card_visual.glb
+[1.470s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/NIC Card Mount/model.config
+[1.471s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/NIC Card Mount/nic_card_mount_macro.xacro
+[1.471s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/NIC Card Mount/model.sdf
+[1.471s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/sc_cable
+[1.471s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/sc_cable/model.config
+[1.472s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/sc_cable/model.sdf
+[1.472s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/Robotiq Hand-E
+[1.472s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/Robotiq Hand-E/hande_base_visual.glb
+[1.474s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/Robotiq Hand-E/hande_finger_visual.glb
+[1.475s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/Robotiq Hand-E/robotiq_hande_macro.xacro
+[1.475s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/Robotiq Hand-E/model.config
+[1.475s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/Robotiq Hand-E/robotiq_hande.ros2_control.xacro
+[1.475s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/Robotiq Hand-E/model.sdf
+[1.475s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/LC Mount
+[1.476s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/LC Mount/lc_mount_macro.xacro
+[1.476s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/LC Mount/model.config
+[1.476s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/LC Mount/lc_mount_visual.glb
+[1.477s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/LC Mount/model.sdf
+[1.477s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/LC Plug
+[1.477s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/LC Plug/lc_plug_visual.glb
+[1.489s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/LC Plug/model.config
+[1.489s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/LC Plug/model.sdf
+[1.489s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/Enclosure
+[1.489s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/Enclosure/enclosurewalls_visual.glb
+[1.489s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/Enclosure/model.config
+[1.489s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/Enclosure/enclosure_visual.glb
+[1.497s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/Enclosure/light_visual.glb
+[1.497s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/Enclosure/model.sdf
+[1.497s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/sfp_sc_cable_reversed
+[1.497s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/sfp_sc_cable_reversed/model.config
+[1.497s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/sfp_sc_cable_reversed/model.sdf
+[1.498s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/NIC Card
+[1.498s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/NIC Card/nic_card_visual.glb
+[1.525s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/NIC Card/model.config
+[1.526s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/NIC Card/model.sdf
+[1.526s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/Enclosure Walls
+[1.526s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/Enclosure Walls/enclosure_walls_visual.glb
+[1.526s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/Enclosure Walls/model.config
+[1.526s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/Enclosure Walls/model.sdf
+[1.526s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/SFP Mount
+[1.526s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/SFP Mount/sfp_mount_visual.glb
+[1.527s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/SFP Mount/model.config
+[1.527s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/SFP Mount/sfp_mount_macro.xacro
+[1.527s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/SFP Mount/model.sdf
+[1.528s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/Task Board Base
+[1.528s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/Task Board Base/task_board_base_macro.xacro
+[1.528s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/Task Board Base/model.config
+[1.528s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/Task Board Base/base_visual.glb
+[1.530s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/Task Board Base/model.sdf
+[1.530s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/Axia80 M20
+[1.530s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/Axia80 M20/axia_ft_sensor_visual.glb
+[1.531s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/Axia80 M20/axia80_m20_macro.xacro
+[1.531s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/Axia80 M20/model.config
+[1.531s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/Axia80 M20/model.sdf
+[1.532s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/SC Mount
+[1.532s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/SC Mount/sc_mount_visual.glb
+[1.533s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/SC Mount/model.config
+[1.533s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/SC Mount/sc_mount_macro.xacro
+[1.533s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/SC Mount/model.sdf
+[1.534s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/cable_base_c_rotated_reversed
+[1.534s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/cable_base_c_rotated_reversed/model.config
+[1.534s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/cable_base_c_rotated_reversed/model.sdf
+[1.534s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/SFP Module
+[1.535s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/SFP Module/model.config
+[1.535s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/SFP Module/sfp_module_visual.glb
+[1.558s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/SFP Module/model.sdf
+[1.558s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/SC Port
+[1.558s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/SC Port/sc_port_macro.xacro
+[1.558s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/SC Port/model.config
+[1.558s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/SC Port/sc_port_visual.glb
+[1.579s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/SC Port/model.sdf
+[1.579s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/sfp_sc_cable
+[1.579s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/sfp_sc_cable/model.config
+[1.579s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/sfp_sc_cable/model.sdf
+[1.580s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/lc_sc_cable
+[1.580s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/lc_sc_cable/model.config
+[1.580s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/lc_sc_cable/model.sdf
+[1.580s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/cable_base_c_rotated
+[1.580s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/cable_base_c_rotated/model.config
+[1.580s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/cable_base_c_rotated/model.sdf
+[1.581s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/Camera Mount
+[1.581s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/Camera Mount/cam_mount_macro.xacro
+[1.581s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/Camera Mount/model.config
+[1.581s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/Camera Mount/cam_mount_visual.glb
+[1.583s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/Camera Mount/model.sdf
+[1.583s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/Basler Camera
+[1.583s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/Basler Camera/basler_camera_macro.xacro
+[1.584s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/Basler Camera/model.config
+[1.584s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/Basler Camera/basler_cam_visual.glb
+[1.587s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/Basler Camera/model.sdf
+[1.587s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/SC Plug
+[1.587s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/SC Plug/sc_plug_visual.glb
+[1.605s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/SC Plug/model.config
+[1.605s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/SC Plug/model.sdf
+[1.605s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/Floor
+[1.605s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/Floor/floor_visual.glb
+[1.614s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/Floor/walls_visual.glb
+[1.615s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/Floor/model.config
+[1.615s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/Floor/model.sdf
+[1.615s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/lc_cable
+[1.615s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/lc_cable/model.config
+[1.615s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/models/lc_cable/model.sdf
+[1.616s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/ament_index/resource_index/package_run_dependencies/aic_assets
+[1.616s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/ament_index/resource_index/parent_prefix_path/aic_assets
+[1.616s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/environment/ament_prefix_path.sh
+[1.616s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/environment/ament_prefix_path.dsv
+[1.616s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/environment/path.sh
+[1.616s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/environment/path.dsv
+[1.616s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/local_setup.bash
+[1.617s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/local_setup.sh
+[1.617s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/local_setup.zsh
+[1.617s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/local_setup.dsv
+[1.617s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/package.dsv
+[1.617s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/ament_index/resource_index/packages/aic_assets
+[1.617s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/cmake/aic_assetsConfig.cmake
+[1.617s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/cmake/aic_assetsConfig-version.cmake
+[1.618s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_assets/share/aic_assets/package.xml
+[1.620s] Invoked command in '/home/damien/ws_aic/src/aic/build/aic_assets' returned '0': CMAKE_PREFIX_PATH=/home/damien/ws_aic/src/aic/.pixi/envs/default CONDA_PROMPT_MODIFIER=(base) DEBUGINFOD_URLS=https://debuginfod.ubuntu.com PIXI_PROMPT=(aic) PS1=(aic) (base) \[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ /home/damien/ws_aic/src/aic/.pixi/envs/default/bin/cmake --install /home/damien/ws_aic/src/aic/build/aic_assets

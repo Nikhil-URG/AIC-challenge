@@ -1,0 +1,3 @@
+source;share/aic_assets/environment/ament_prefix_path.sh
+source;share/aic_assets/environment/path.sh
+source;share/aic_assets/environment/aic_assets.dsv

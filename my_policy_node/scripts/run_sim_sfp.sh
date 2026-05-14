@@ -32,8 +32,8 @@ while true; do
     spawn_cable:=false \\
     attach_cable_to_gripper:=true \\
     ground_truth:=true \\
-    start_aic_engine:=true \\
-    aic_engine_config_file:=$SFP_CONFIG
+    start_aic_engine:=true 
+    # aic_engine_config_file:=$SFP_CONFIG
   echo "Simulation ended -- restarting in 3 s..."
   sleep 3
 done

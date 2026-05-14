@@ -1,0 +1,259 @@
+[0.014s] Invoking command in '/home/damien/ws_aic/src/aic/build/aic_engine_interfaces': CMAKE_PREFIX_PATH=/home/damien/ws_aic/src/aic/.pixi/envs/default CONDA_PROMPT_MODIFIER=(base) DEBUGINFOD_URLS=https://debuginfod.ubuntu.com PIXI_PROMPT=(aic) PS1=(aic) (base) \[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ /home/damien/ws_aic/src/aic/.pixi/envs/default/bin/cmake /home/damien/ws_aic/src/aic/aic_interfaces/aic_engine_interfaces -DCMAKE_INSTALL_PREFIX=/home/damien/ws_aic/src/aic/install/aic_engine_interfaces
+[0.213s] [0mCMake Deprecation Warning at CMakeLists.txt:1 (cmake_minimum_required):
+[0.213s]   Compatibility with CMake < 3.10 will be removed from a future version of
+[0.213s]   CMake.
+[0.213s] 
+[0.213s]   Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+[0.213s]   to tell CMake that the project requires at least <min> but has been updated
+[0.213s]   to work with policies introduced by <max> or earlier.
+[0.213s] 
+[0.213s] [0m
+[0.335s] -- The C compiler identification is GNU 13.3.0
+[0.460s] -- The CXX compiler identification is GNU 13.3.0
+[0.465s] -- Detecting C compiler ABI info
+[0.529s] -- Detecting C compiler ABI info - done
+[0.542s] -- Check for working C compiler: /usr/bin/cc - skipped
+[0.542s] -- Detecting C compile features
+[0.542s] -- Detecting C compile features - done
+[0.553s] -- Detecting CXX compiler ABI info
+[0.617s] -- Detecting CXX compiler ABI info - done
+[0.636s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[0.636s] -- Detecting CXX compile features
+[0.637s] -- Detecting CXX compile features - done
+[0.648s] -- Found ament_cmake: 2.7.5 (/home/damien/ws_aic/src/aic/.pixi/envs/default/share/ament_cmake/cmake)
+[0.773s] -- Found Python3: /home/damien/ws_aic/src/aic/.pixi/envs/default/bin/python3 (found version "3.12.13") found components: Interpreter
+[0.866s] -- Found builtin_interfaces: 2.3.1 (/home/damien/ws_aic/src/aic/.pixi/envs/default/share/builtin_interfaces/cmake)
+[0.896s] -- Found rosidl_generator_c: 4.9.6 (/home/damien/ws_aic/src/aic/.pixi/envs/default/share/rosidl_generator_c/cmake)
+[0.910s] -- Found rosidl_generator_cpp: 4.9.6 (/home/damien/ws_aic/src/aic/.pixi/envs/default/share/rosidl_generator_cpp/cmake)
+[0.942s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[0.973s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[0.991s] -- Found rosidl_default_generators: 1.7.2 (/home/damien/ws_aic/src/aic/.pixi/envs/default/share/rosidl_default_generators/cmake)
+[1.010s] -- Found rosidl_adapter: 4.9.6 (/home/damien/ws_aic/src/aic/.pixi/envs/default/share/rosidl_adapter/cmake)
+[1.013s] -- Found std_msgs: 5.5.2 (/home/damien/ws_aic/src/aic/.pixi/envs/default/share/std_msgs/cmake)
+[1.527s] -- Found ament_cmake_cppcheck: 0.19.2 (/home/damien/ws_aic/src/aic/.pixi/envs/default/share/ament_cmake_cppcheck/cmake)
+[1.530s] -- Found ament_cmake_cpplint: 0.19.2 (/home/damien/ws_aic/src/aic/.pixi/envs/default/share/ament_cmake_cpplint/cmake)
+[1.537s] -- Found ament_cmake_uncrustify: 0.19.2 (/home/damien/ws_aic/src/aic/.pixi/envs/default/share/ament_cmake_uncrustify/cmake)
+[1.544s] -- Found ament_cmake_ros_core: 0.14.7 (/home/damien/ws_aic/src/aic/.pixi/envs/default/share/ament_cmake_ros_core/cmake)
+[2.228s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[2.523s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[3.123s] -- Found Python3: /home/damien/ws_aic/src/aic/.pixi/envs/default/bin/python3 (found version "3.12.13") found components: Interpreter Development NumPy Development.Module Development.Embed
+[3.170s] -- Found ament_cmake_flake8: 0.19.2 (/home/damien/ws_aic/src/aic/.pixi/envs/default/share/ament_cmake_flake8/cmake)
+[3.173s] -- Found ament_cmake_pep257: 0.19.2 (/home/damien/ws_aic/src/aic/.pixi/envs/default/share/ament_cmake_pep257/cmake)
+[3.239s] -- Found Python3: /home/damien/ws_aic/src/aic/.pixi/envs/default/bin/python3 (found version "3.12.13") found components: Interpreter
+[3.246s] -- Configuring done (3.0s)
+[3.290s] -- Generating done (0.0s)
+[3.301s] -- Build files have been written to: /home/damien/ws_aic/src/aic/build/aic_engine_interfaces
+[3.311s] Invoked command in '/home/damien/ws_aic/src/aic/build/aic_engine_interfaces' returned '0': CMAKE_PREFIX_PATH=/home/damien/ws_aic/src/aic/.pixi/envs/default CONDA_PROMPT_MODIFIER=(base) DEBUGINFOD_URLS=https://debuginfod.ubuntu.com PIXI_PROMPT=(aic) PS1=(aic) (base) \[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ /home/damien/ws_aic/src/aic/.pixi/envs/default/bin/cmake /home/damien/ws_aic/src/aic/aic_interfaces/aic_engine_interfaces -DCMAKE_INSTALL_PREFIX=/home/damien/ws_aic/src/aic/install/aic_engine_interfaces
+[3.312s] Invoking command in '/home/damien/ws_aic/src/aic/build/aic_engine_interfaces': CMAKE_PREFIX_PATH=/home/damien/ws_aic/src/aic/.pixi/envs/default CONDA_PROMPT_MODIFIER=(base) DEBUGINFOD_URLS=https://debuginfod.ubuntu.com PIXI_PROMPT=(aic) PS1=(aic) (base) \[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ /home/damien/ws_aic/src/aic/.pixi/envs/default/bin/cmake --build /home/damien/ws_aic/src/aic/build/aic_engine_interfaces -- -j12 -l12
+[3.437s] [  2%] [1m[34mGenerating type hashes for ROS interfaces[0m
+[3.439s] [  5%] [1m[34mGenerating Rust code for ROS interfaces[0m
+[3.441s] [  5%] Built target ament_cmake_python_copy_aic_engine_interfaces
+[3.728s] [  5%] Built target aic_engine_interfaces__rosidl_generator_type_description
+[3.738s] [  8%] [1m[34mGenerating C code for ROS interfaces[0m
+[3.739s] [ 11%] [1m[34mGenerating C++ code for ROS interfaces[0m
+[3.752s] running egg_info
+[3.777s] creating aic_engine_interfaces.egg-info
+[3.783s] writing aic_engine_interfaces.egg-info/PKG-INFO
+[3.783s] writing dependency_links to aic_engine_interfaces.egg-info/dependency_links.txt
+[3.783s] writing top-level names to aic_engine_interfaces.egg-info/top_level.txt
+[3.784s] writing manifest file 'aic_engine_interfaces.egg-info/SOURCES.txt'
+[3.792s] [ 11%] Built target aic_engine_interfaces__rs
+[3.841s] reading manifest file 'aic_engine_interfaces.egg-info/SOURCES.txt'
+[3.841s] writing manifest file 'aic_engine_interfaces.egg-info/SOURCES.txt'
+[3.889s] [ 11%] Built target ament_cmake_python_build_aic_engine_interfaces_egg
+[4.052s] [ 17%] [32mBuilding C object CMakeFiles/aic_engine_interfaces__rosidl_generator_c.dir/rosidl_generator_c/aic_engine_interfaces/srv/detail/reset_joints__type_support.c.o[0m
+[4.053s] [ 17%] [32mBuilding C object CMakeFiles/aic_engine_interfaces__rosidl_generator_c.dir/rosidl_generator_c/aic_engine_interfaces/srv/detail/reset_joints__description.c.o[0m
+[4.053s] [ 20%] [32mBuilding C object CMakeFiles/aic_engine_interfaces__rosidl_generator_c.dir/rosidl_generator_c/aic_engine_interfaces/srv/detail/reset_joints__functions.c.o[0m
+[4.102s] [ 20%] Built target aic_engine_interfaces__cpp
+[4.165s] [ 22%] [1m[32mLinking C shared library libaic_engine_interfaces__rosidl_generator_c.so[0m
+[4.187s] [ 22%] Built target aic_engine_interfaces__rosidl_generator_c
+[4.195s] [ 25%] [1m[34mGenerating C type support for eProsima Fast-RTPS[0m
+[4.196s] [ 28%] [1m[34mGenerating C type support dispatch for ROS interfaces[0m
+[4.202s] [ 31%] [1m[34mGenerating C++ type support dispatch for ROS interfaces[0m
+[4.207s] [ 37%] [1m[34mGenerating C introspection for ROS interfaces[0m
+[4.208s] [ 37%] [1m[34mGenerating C++ introspection for ROS interfaces[0m
+[4.208s] [ 40%] [1m[34mGenerating C++ type support for eProsima Fast-RTPS[0m
+[4.551s] [ 42%] [32mBuilding CXX object CMakeFiles/aic_engine_interfaces__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/aic_engine_interfaces/srv/detail/reset_joints__type_support.cpp.o[0m
+[4.608s] [ 45%] [32mBuilding CXX object CMakeFiles/aic_engine_interfaces__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/aic_engine_interfaces/srv/reset_joints__type_support.cpp.o[0m
+[4.614s] [ 48%] [32mBuilding C object CMakeFiles/aic_engine_interfaces__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/aic_engine_interfaces/srv/detail/reset_joints__type_support.c.o[0m
+[4.666s] [ 51%] [32mBuilding CXX object CMakeFiles/aic_engine_interfaces__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/aic_engine_interfaces/srv/detail/reset_joints__type_support_c.cpp.o[0m
+[4.679s] [ 54%] [32mBuilding CXX object CMakeFiles/aic_engine_interfaces__rosidl_typesupport_c.dir/rosidl_typesupport_c/aic_engine_interfaces/srv/reset_joints__type_support.cpp.o[0m
+[4.693s] [ 57%] [1m[32mLinking C shared library libaic_engine_interfaces__rosidl_typesupport_introspection_c.so[0m
+[4.722s] [ 60%] [32mBuilding CXX object CMakeFiles/aic_engine_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/aic_engine_interfaces/srv/detail/dds_fastrtps/reset_joints__type_support.cpp.o[0m
+[4.727s] [ 60%] Built target aic_engine_interfaces__rosidl_typesupport_introspection_c
+[4.734s] [ 62%] [1m[32mLinking CXX shared library libaic_engine_interfaces__rosidl_typesupport_c.so[0m
+[4.779s] [ 62%] Built target aic_engine_interfaces__rosidl_typesupport_c
+[5.487s] [ 65%] [1m[32mLinking CXX shared library libaic_engine_interfaces__rosidl_typesupport_cpp.so[0m
+[5.703s] [ 68%] [1m[32mLinking CXX shared library libaic_engine_interfaces__rosidl_typesupport_fastrtps_c.so[0m
+[5.772s] [ 68%] Built target aic_engine_interfaces__rosidl_typesupport_cpp
+[5.834s] [ 71%] [1m[32mLinking CXX shared library libaic_engine_interfaces__rosidl_typesupport_introspection_cpp.so[0m
+[5.835s] [ 74%] [1m[32mLinking CXX shared library libaic_engine_interfaces__rosidl_typesupport_fastrtps_cpp.so[0m
+[5.869s] [ 74%] Built target aic_engine_interfaces__rosidl_typesupport_fastrtps_c
+[5.986s] [ 74%] Built target aic_engine_interfaces__rosidl_typesupport_introspection_cpp
+[6.050s] [ 74%] Built target aic_engine_interfaces__rosidl_typesupport_fastrtps_cpp
+[6.077s] [ 74%] Built target aic_engine_interfaces
+[6.104s] [ 77%] [1m[34mGenerating Python code for ROS interfaces[0m
+[6.672s] [ 77%] Built target aic_engine_interfaces__py
+[6.708s] [ 80%] [32mBuilding C object CMakeFiles/aic_engine_interfaces__rosidl_generator_py.dir/rosidl_generator_py/aic_engine_interfaces/srv/_reset_joints_s.c.o[0m
+[7.259s] [ 82%] [1m[32mLinking C shared library libaic_engine_interfaces__rosidl_generator_py.so[0m
+[7.347s] [ 82%] Built target aic_engine_interfaces__rosidl_generator_py
+[7.371s] [ 85%] [32mBuilding C object CMakeFiles/aic_engine_interfaces_s__rosidl_typesupport_fastrtps_c.dir/rosidl_generator_py/aic_engine_interfaces/_aic_engine_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c.o[0m
+[7.380s] [ 88%] [32mBuilding C object CMakeFiles/aic_engine_interfaces_s__rosidl_typesupport_introspection_c.dir/rosidl_generator_py/aic_engine_interfaces/_aic_engine_interfaces_s.ep.rosidl_typesupport_introspection_c.c.o[0m
+[7.382s] [ 91%] [32mBuilding C object CMakeFiles/aic_engine_interfaces_s__rosidl_typesupport_c.dir/rosidl_generator_py/aic_engine_interfaces/_aic_engine_interfaces_s.ep.rosidl_typesupport_c.c.o[0m
+[7.629s] [ 94%] [1m[32mLinking C shared module rosidl_generator_py/aic_engine_interfaces/aic_engine_interfaces_s__rosidl_typesupport_introspection_c.so[0m
+[7.664s] [ 97%] [1m[32mLinking C shared module rosidl_generator_py/aic_engine_interfaces/aic_engine_interfaces_s__rosidl_typesupport_c.so[0m
+[7.665s] [ 97%] Built target aic_engine_interfaces_s__rosidl_typesupport_introspection_c
+[7.689s] [ 97%] Built target aic_engine_interfaces_s__rosidl_typesupport_c
+[7.756s] [100%] [1m[32mLinking C shared module rosidl_generator_py/aic_engine_interfaces/aic_engine_interfaces_s__rosidl_typesupport_fastrtps_c.so[0m
+[7.822s] [100%] Built target aic_engine_interfaces_s__rosidl_typesupport_fastrtps_c
+[7.845s] Invoked command in '/home/damien/ws_aic/src/aic/build/aic_engine_interfaces' returned '0': CMAKE_PREFIX_PATH=/home/damien/ws_aic/src/aic/.pixi/envs/default CONDA_PROMPT_MODIFIER=(base) DEBUGINFOD_URLS=https://debuginfod.ubuntu.com PIXI_PROMPT=(aic) PS1=(aic) (base) \[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ /home/damien/ws_aic/src/aic/.pixi/envs/default/bin/cmake --build /home/damien/ws_aic/src/aic/build/aic_engine_interfaces -- -j12 -l12
+[7.848s] Invoking command in '/home/damien/ws_aic/src/aic/build/aic_engine_interfaces': CMAKE_PREFIX_PATH=/home/damien/ws_aic/src/aic/.pixi/envs/default CONDA_PROMPT_MODIFIER=(base) DEBUGINFOD_URLS=https://debuginfod.ubuntu.com PIXI_PROMPT=(aic) PS1=(aic) (base) \[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ /home/damien/ws_aic/src/aic/.pixi/envs/default/bin/cmake --install /home/damien/ws_aic/src/aic/build/aic_engine_interfaces
+[8.128s] -- Install configuration: ""
+[8.129s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/ament_index/resource_index/rosidl_interfaces/aic_engine_interfaces
+[8.129s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/srv/ResetJoints.json
+[8.129s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/include/aic_engine_interfaces/aic_engine_interfaces
+[8.129s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/include/aic_engine_interfaces/aic_engine_interfaces/srv
+[8.130s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/include/aic_engine_interfaces/aic_engine_interfaces/srv/detail
+[8.130s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/include/aic_engine_interfaces/aic_engine_interfaces/srv/detail/reset_joints__functions.h
+[8.130s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/include/aic_engine_interfaces/aic_engine_interfaces/srv/detail/reset_joints__type_support.c
+[8.131s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/include/aic_engine_interfaces/aic_engine_interfaces/srv/detail/reset_joints__struct.h
+[8.131s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/include/aic_engine_interfaces/aic_engine_interfaces/srv/detail/reset_joints__type_support.h
+[8.132s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/include/aic_engine_interfaces/aic_engine_interfaces/srv/detail/reset_joints__description.c
+[8.132s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/include/aic_engine_interfaces/aic_engine_interfaces/srv/detail/reset_joints__functions.c
+[8.132s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/include/aic_engine_interfaces/aic_engine_interfaces/srv/reset_joints.h
+[8.133s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/include/aic_engine_interfaces/aic_engine_interfaces/msg
+[8.133s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/include/aic_engine_interfaces/aic_engine_interfaces/msg/rosidl_generator_c__visibility_control.h
+[8.134s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/environment/library_path.sh
+[8.135s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/environment/library_path.dsv
+[8.135s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/lib/libaic_engine_interfaces__rosidl_generator_c.so
+[8.136s] -- Set non-toolchain portion of runtime path of "/home/damien/ws_aic/src/aic/install/aic_engine_interfaces/lib/libaic_engine_interfaces__rosidl_generator_c.so" to ""
+[8.136s] -- Up-to-date: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/include/aic_engine_interfaces/aic_engine_interfaces
+[8.143s] -- Up-to-date: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/include/aic_engine_interfaces/aic_engine_interfaces/srv
+[8.143s] -- Up-to-date: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/include/aic_engine_interfaces/aic_engine_interfaces/srv/detail
+[8.143s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/include/aic_engine_interfaces/aic_engine_interfaces/srv/detail/reset_joints__rosidl_typesupport_fastrtps_c.h
+[8.143s] -- Up-to-date: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/include/aic_engine_interfaces/aic_engine_interfaces/msg
+[8.144s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/include/aic_engine_interfaces/aic_engine_interfaces/msg/rosidl_typesupport_fastrtps_c__visibility_control.h
+[8.145s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/lib/libaic_engine_interfaces__rosidl_typesupport_fastrtps_c.so
+[8.145s] -- Set non-toolchain portion of runtime path of "/home/damien/ws_aic/src/aic/install/aic_engine_interfaces/lib/libaic_engine_interfaces__rosidl_typesupport_fastrtps_c.so" to ""
+[8.145s] -- Up-to-date: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/include/aic_engine_interfaces/aic_engine_interfaces
+[8.146s] -- Up-to-date: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/include/aic_engine_interfaces/aic_engine_interfaces/srv
+[8.146s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/include/aic_engine_interfaces/aic_engine_interfaces/srv/reset_joints.hpp
+[8.147s] -- Up-to-date: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/include/aic_engine_interfaces/aic_engine_interfaces/srv/detail
+[8.147s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/include/aic_engine_interfaces/aic_engine_interfaces/srv/detail/reset_joints__type_support.hpp
+[8.147s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/include/aic_engine_interfaces/aic_engine_interfaces/srv/detail/reset_joints__struct.hpp
+[8.148s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/include/aic_engine_interfaces/aic_engine_interfaces/srv/detail/reset_joints__traits.hpp
+[8.148s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/include/aic_engine_interfaces/aic_engine_interfaces/srv/detail/reset_joints__builder.hpp
+[8.149s] -- Up-to-date: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/include/aic_engine_interfaces/aic_engine_interfaces/msg
+[8.149s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/include/aic_engine_interfaces/aic_engine_interfaces/msg/rosidl_generator_cpp__visibility_control.hpp
+[8.149s] -- Up-to-date: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/include/aic_engine_interfaces/aic_engine_interfaces
+[8.149s] -- Up-to-date: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/include/aic_engine_interfaces/aic_engine_interfaces/srv
+[8.149s] -- Up-to-date: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/include/aic_engine_interfaces/aic_engine_interfaces/srv/detail
+[8.150s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/include/aic_engine_interfaces/aic_engine_interfaces/srv/detail/reset_joints__rosidl_typesupport_fastrtps_cpp.hpp
+[8.150s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/include/aic_engine_interfaces/aic_engine_interfaces/srv/detail/dds_fastrtps
+[8.151s] -- Up-to-date: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/include/aic_engine_interfaces/aic_engine_interfaces/msg
+[8.151s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/include/aic_engine_interfaces/aic_engine_interfaces/msg/rosidl_typesupport_fastrtps_cpp__visibility_control.h
+[8.152s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/lib/libaic_engine_interfaces__rosidl_typesupport_fastrtps_cpp.so
+[8.152s] -- Set non-toolchain portion of runtime path of "/home/damien/ws_aic/src/aic/install/aic_engine_interfaces/lib/libaic_engine_interfaces__rosidl_typesupport_fastrtps_cpp.so" to ""
+[8.152s] -- Up-to-date: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/include/aic_engine_interfaces/aic_engine_interfaces
+[8.153s] -- Up-to-date: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/include/aic_engine_interfaces/aic_engine_interfaces/srv
+[8.153s] -- Up-to-date: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/include/aic_engine_interfaces/aic_engine_interfaces/srv/detail
+[8.153s] -- Up-to-date: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/include/aic_engine_interfaces/aic_engine_interfaces/srv/detail/reset_joints__type_support.c
+[8.154s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/include/aic_engine_interfaces/aic_engine_interfaces/srv/detail/reset_joints__rosidl_typesupport_introspection_c.h
+[8.154s] -- Up-to-date: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/include/aic_engine_interfaces/aic_engine_interfaces/msg
+[8.155s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/include/aic_engine_interfaces/aic_engine_interfaces/msg/rosidl_typesupport_introspection_c__visibility_control.h
+[8.156s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/lib/libaic_engine_interfaces__rosidl_typesupport_introspection_c.so
+[8.156s] -- Set non-toolchain portion of runtime path of "/home/damien/ws_aic/src/aic/install/aic_engine_interfaces/lib/libaic_engine_interfaces__rosidl_typesupport_introspection_c.so" to ""
+[8.156s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/lib/libaic_engine_interfaces__rosidl_typesupport_c.so
+[8.157s] -- Set non-toolchain portion of runtime path of "/home/damien/ws_aic/src/aic/install/aic_engine_interfaces/lib/libaic_engine_interfaces__rosidl_typesupport_c.so" to ""
+[8.157s] -- Up-to-date: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/include/aic_engine_interfaces/aic_engine_interfaces
+[8.158s] -- Up-to-date: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/include/aic_engine_interfaces/aic_engine_interfaces/srv
+[8.158s] -- Up-to-date: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/include/aic_engine_interfaces/aic_engine_interfaces/srv/detail
+[8.159s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/include/aic_engine_interfaces/aic_engine_interfaces/srv/detail/reset_joints__rosidl_typesupport_introspection_cpp.hpp
+[8.159s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/include/aic_engine_interfaces/aic_engine_interfaces/srv/detail/reset_joints__type_support.cpp
+[8.159s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/lib/libaic_engine_interfaces__rosidl_typesupport_introspection_cpp.so
+[8.167s] -- Set non-toolchain portion of runtime path of "/home/damien/ws_aic/src/aic/install/aic_engine_interfaces/lib/libaic_engine_interfaces__rosidl_typesupport_introspection_cpp.so" to ""
+[8.167s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/lib/libaic_engine_interfaces__rosidl_typesupport_cpp.so
+[8.167s] -- Set non-toolchain portion of runtime path of "/home/damien/ws_aic/src/aic/install/aic_engine_interfaces/lib/libaic_engine_interfaces__rosidl_typesupport_cpp.so" to ""
+[8.167s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/environment/pythonpath.sh
+[8.169s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/environment/pythonpath.dsv
+[8.169s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/lib/python3.12/site-packages/aic_engine_interfaces-0.0.1-py3.12.egg-info
+[8.170s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/lib/python3.12/site-packages/aic_engine_interfaces-0.0.1-py3.12.egg-info/PKG-INFO
+[8.170s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/lib/python3.12/site-packages/aic_engine_interfaces-0.0.1-py3.12.egg-info/SOURCES.txt
+[8.171s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/lib/python3.12/site-packages/aic_engine_interfaces-0.0.1-py3.12.egg-info/dependency_links.txt
+[8.171s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/lib/python3.12/site-packages/aic_engine_interfaces-0.0.1-py3.12.egg-info/top_level.txt
+[8.171s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/lib/python3.12/site-packages/aic_engine_interfaces
+[8.172s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/lib/python3.12/site-packages/aic_engine_interfaces/aic_engine_interfaces_s__rosidl_typesupport_introspection_c.so
+[8.172s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/lib/python3.12/site-packages/aic_engine_interfaces/_aic_engine_interfaces_s.ep.rosidl_typesupport_fastrtps_c.c
+[8.172s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/lib/python3.12/site-packages/aic_engine_interfaces/__init__.py
+[8.173s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/lib/python3.12/site-packages/aic_engine_interfaces/_aic_engine_interfaces_s.ep.rosidl_typesupport_c.c
+[8.173s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/lib/python3.12/site-packages/aic_engine_interfaces/aic_engine_interfaces_s__rosidl_typesupport_c.so
+[8.174s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/lib/python3.12/site-packages/aic_engine_interfaces/_aic_engine_interfaces_s.ep.rosidl_typesupport_introspection_c.c
+[8.174s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/lib/python3.12/site-packages/aic_engine_interfaces/aic_engine_interfaces_s__rosidl_typesupport_fastrtps_c.so
+[8.175s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/lib/python3.12/site-packages/aic_engine_interfaces/srv
+[8.176s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/lib/python3.12/site-packages/aic_engine_interfaces/srv/__init__.py
+[8.176s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/lib/python3.12/site-packages/aic_engine_interfaces/srv/_reset_joints.py
+[8.176s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/lib/python3.12/site-packages/aic_engine_interfaces/srv/_reset_joints_s.c
+[8.301s] Listing '/home/damien/ws_aic/src/aic/install/aic_engine_interfaces/lib/python3.12/site-packages/aic_engine_interfaces'...
+[8.301s] Compiling '/home/damien/ws_aic/src/aic/install/aic_engine_interfaces/lib/python3.12/site-packages/aic_engine_interfaces/__init__.py'...
+[8.301s] Listing '/home/damien/ws_aic/src/aic/install/aic_engine_interfaces/lib/python3.12/site-packages/aic_engine_interfaces/srv'...
+[8.301s] Compiling '/home/damien/ws_aic/src/aic/install/aic_engine_interfaces/lib/python3.12/site-packages/aic_engine_interfaces/srv/__init__.py'...
+[8.301s] Compiling '/home/damien/ws_aic/src/aic/install/aic_engine_interfaces/lib/python3.12/site-packages/aic_engine_interfaces/srv/_reset_joints.py'...
+[8.324s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/lib/python3.12/site-packages/aic_engine_interfaces/aic_engine_interfaces_s__rosidl_typesupport_fastrtps_c.so
+[8.324s] -- Set non-toolchain portion of runtime path of "/home/damien/ws_aic/src/aic/install/aic_engine_interfaces/lib/python3.12/site-packages/aic_engine_interfaces/aic_engine_interfaces_s__rosidl_typesupport_fastrtps_c.so" to ""
+[8.324s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/lib/python3.12/site-packages/aic_engine_interfaces/aic_engine_interfaces_s__rosidl_typesupport_introspection_c.so
+[8.324s] -- Set non-toolchain portion of runtime path of "/home/damien/ws_aic/src/aic/install/aic_engine_interfaces/lib/python3.12/site-packages/aic_engine_interfaces/aic_engine_interfaces_s__rosidl_typesupport_introspection_c.so" to ""
+[8.324s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/lib/python3.12/site-packages/aic_engine_interfaces/aic_engine_interfaces_s__rosidl_typesupport_c.so
+[8.324s] -- Set non-toolchain portion of runtime path of "/home/damien/ws_aic/src/aic/install/aic_engine_interfaces/lib/python3.12/site-packages/aic_engine_interfaces/aic_engine_interfaces_s__rosidl_typesupport_c.so" to ""
+[8.324s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/lib/libaic_engine_interfaces__rosidl_generator_py.so
+[8.324s] -- Set non-toolchain portion of runtime path of "/home/damien/ws_aic/src/aic/install/aic_engine_interfaces/lib/libaic_engine_interfaces__rosidl_generator_py.so" to ""
+[8.324s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/ament_index/resource_index/rust_packages/aic_engine_interfaces
+[8.324s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/rust
+[8.324s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/rust/Cargo.toml
+[8.326s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/rust/src
+[8.326s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/rust/src/lib.rs
+[8.326s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/rust/src/srv.rs
+[8.327s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/rust/src/srv
+[8.327s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/rust/src/srv/rmw.rs
+[8.327s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/rust/build.rs
+[8.327s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/srv/ResetJoints.idl
+[8.327s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/srv/ResetJoints.srv
+[8.327s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/ament_index/resource_index/package_run_dependencies/aic_engine_interfaces
+[8.328s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/ament_index/resource_index/parent_prefix_path/aic_engine_interfaces
+[8.328s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/environment/ament_prefix_path.sh
+[8.328s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/environment/ament_prefix_path.dsv
+[8.328s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/environment/path.sh
+[8.328s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/environment/path.dsv
+[8.329s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/local_setup.bash
+[8.330s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/local_setup.sh
+[8.330s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/local_setup.zsh
+[8.332s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/local_setup.dsv
+[8.332s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/package.dsv
+[8.333s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/ament_index/resource_index/packages/aic_engine_interfaces
+[8.333s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/cmake/export_aic_engine_interfaces__rosidl_generator_cExport.cmake
+[8.333s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/cmake/export_aic_engine_interfaces__rosidl_generator_cExport-noconfig.cmake
+[8.335s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/cmake/export_aic_engine_interfaces__rosidl_typesupport_fastrtps_cExport.cmake
+[8.335s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/cmake/export_aic_engine_interfaces__rosidl_typesupport_fastrtps_cExport-noconfig.cmake
+[8.335s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/cmake/export_aic_engine_interfaces__rosidl_generator_cppExport.cmake
+[8.335s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/cmake/export_aic_engine_interfaces__rosidl_typesupport_fastrtps_cppExport.cmake
+[8.335s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/cmake/export_aic_engine_interfaces__rosidl_typesupport_fastrtps_cppExport-noconfig.cmake
+[8.335s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/cmake/aic_engine_interfaces__rosidl_typesupport_introspection_cExport.cmake
+[8.336s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/cmake/aic_engine_interfaces__rosidl_typesupport_introspection_cExport-noconfig.cmake
+[8.336s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/cmake/aic_engine_interfaces__rosidl_typesupport_cExport.cmake
+[8.336s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/cmake/aic_engine_interfaces__rosidl_typesupport_cExport-noconfig.cmake
+[8.336s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/cmake/aic_engine_interfaces__rosidl_typesupport_introspection_cppExport.cmake
+[8.342s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/cmake/aic_engine_interfaces__rosidl_typesupport_introspection_cppExport-noconfig.cmake
+[8.342s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/cmake/aic_engine_interfaces__rosidl_typesupport_cppExport.cmake
+[8.342s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/cmake/aic_engine_interfaces__rosidl_typesupport_cppExport-noconfig.cmake
+[8.345s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/cmake/export_aic_engine_interfaces__rosidl_generator_pyExport.cmake
+[8.345s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/cmake/export_aic_engine_interfaces__rosidl_generator_pyExport-noconfig.cmake
+[8.345s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/cmake/rosidl_cmake-extras.cmake
+[8.345s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/cmake/ament_cmake_export_dependencies-extras.cmake
+[8.346s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/cmake/ament_cmake_export_include_directories-extras.cmake
+[8.346s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/cmake/ament_cmake_export_libraries-extras.cmake
+[8.346s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/cmake/ament_cmake_export_targets-extras.cmake
+[8.346s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/cmake/rosidl_cmake_export_typesupport_targets-extras.cmake
+[8.346s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/cmake/rosidl_cmake_export_typesupport_libraries-extras.cmake
+[8.346s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/cmake/aic_engine_interfacesConfig.cmake
+[8.346s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/cmake/aic_engine_interfacesConfig-version.cmake
+[8.346s] -- Installing: /home/damien/ws_aic/src/aic/install/aic_engine_interfaces/share/aic_engine_interfaces/package.xml
+[8.353s] Invoked command in '/home/damien/ws_aic/src/aic/build/aic_engine_interfaces' returned '0': CMAKE_PREFIX_PATH=/home/damien/ws_aic/src/aic/.pixi/envs/default CONDA_PROMPT_MODIFIER=(base) DEBUGINFOD_URLS=https://debuginfod.ubuntu.com PIXI_PROMPT=(aic) PS1=(aic) (base) \[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ /home/damien/ws_aic/src/aic/.pixi/envs/default/bin/cmake --install /home/damien/ws_aic/src/aic/build/aic_engine_interfaces

@@ -1,0 +1,27 @@
+[1.073s] Invoking command in '/home/damien/ws_aic/src/aic/aic_utils/aic_isaac/aic_isaaclab/source/aic_task': CONDA_PROMPT_MODIFIER=(base) DEBUGINFOD_URLS=https://debuginfod.ubuntu.com PIXI_PROMPT=(aic) PS1=(aic) (base) \[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ PYTHONPATH=/home/damien/ws_aic/src/aic/build/aic_task/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/damien/ws_aic/src/aic/install/aic_task/lib/python3.12/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../../../../build/aic_task build --build-base /home/damien/ws_aic/src/aic/build/aic_task/build install --record /home/damien/ws_aic/src/aic/build/aic_task/install.log --single-version-externally-managed
+[1.550s] running egg_info
+[1.570s] creating ../../../../../build/aic_task/aic_task.egg-info
+[1.571s] writing ../../../../../build/aic_task/aic_task.egg-info/PKG-INFO
+[1.571s] writing dependency_links to ../../../../../build/aic_task/aic_task.egg-info/dependency_links.txt
+[1.571s] writing requirements to ../../../../../build/aic_task/aic_task.egg-info/requires.txt
+[1.571s] writing top-level names to ../../../../../build/aic_task/aic_task.egg-info/top_level.txt
+[1.571s] writing manifest file '../../../../../build/aic_task/aic_task.egg-info/SOURCES.txt'
+[1.616s] reading manifest file '../../../../../build/aic_task/aic_task.egg-info/SOURCES.txt'
+[1.617s] writing manifest file '../../../../../build/aic_task/aic_task.egg-info/SOURCES.txt'
+[1.618s] running build
+[1.618s] running build_py
+[1.618s] creating /home/damien/ws_aic/src/aic/build/aic_task/build/lib/aic_task
+[1.618s] copying aic_task/__init__.py -> /home/damien/ws_aic/src/aic/build/aic_task/build/lib/aic_task
+[1.618s] copying aic_task/extension.py -> /home/damien/ws_aic/src/aic/build/aic_task/build/lib/aic_task
+[1.618s] running install
+[1.623s] running install_lib
+[1.647s] creating /home/damien/ws_aic/src/aic/install/aic_task/lib/python3.12/site-packages/aic_task
+[1.647s] copying /home/damien/ws_aic/src/aic/build/aic_task/build/lib/aic_task/__init__.py -> /home/damien/ws_aic/src/aic/install/aic_task/lib/python3.12/site-packages/aic_task
+[1.647s] copying /home/damien/ws_aic/src/aic/build/aic_task/build/lib/aic_task/extension.py -> /home/damien/ws_aic/src/aic/install/aic_task/lib/python3.12/site-packages/aic_task
+[1.647s] byte-compiling /home/damien/ws_aic/src/aic/install/aic_task/lib/python3.12/site-packages/aic_task/__init__.py to __init__.cpython-312.pyc
+[1.648s] byte-compiling /home/damien/ws_aic/src/aic/install/aic_task/lib/python3.12/site-packages/aic_task/extension.py to extension.cpython-312.pyc
+[1.650s] running install_egg_info
+[1.669s] Copying ../../../../../build/aic_task/aic_task.egg-info to /home/damien/ws_aic/src/aic/install/aic_task/lib/python3.12/site-packages/aic_task-0.1.0-py3.12.egg-info
+[1.670s] running install_scripts
+[1.711s] writing list of installed files to '/home/damien/ws_aic/src/aic/build/aic_task/install.log'
+[1.739s] Invoked command in '/home/damien/ws_aic/src/aic/aic_utils/aic_isaac/aic_isaaclab/source/aic_task' returned '0': CONDA_PROMPT_MODIFIER=(base) DEBUGINFOD_URLS=https://debuginfod.ubuntu.com PIXI_PROMPT=(aic) PS1=(aic) (base) \[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ PYTHONPATH=/home/damien/ws_aic/src/aic/build/aic_task/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/damien/ws_aic/src/aic/install/aic_task/lib/python3.12/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../../../../build/aic_task build --build-base /home/damien/ws_aic/src/aic/build/aic_task/build install --record /home/damien/ws_aic/src/aic/build/aic_task/install.log --single-version-externally-managed

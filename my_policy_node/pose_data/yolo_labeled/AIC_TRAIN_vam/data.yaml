@@ -1,0 +1,8 @@
+Train: Train.txt
+kpt_shape:
+- 17
+- 3
+names:
+  0: SC_SKL
+  1: SPF_SKL
+path: .

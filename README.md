@@ -1,193 +1,189 @@
-# SFP / SC Plug Insertion Policy
+# AI for Industry Challenge Toolkit
 
-Imitation-learning policy for inserting SFP (small form-factor pluggable) and SC fibre plugs
-into their respective sockets on the AIC task board.  Uses a pre-trained
-[ACT (Action Chunking Transformer)](https://tonyzhaozh.github.io/aloha/) model with a
-ground-truth alignment phase and a tiered stall-recovery strategy.
+[![build](https://github.com/intrinsic-dev/aic/actions/workflows/build.yml/badge.svg)](https://github.com/intrinsic-dev/aic/actions/workflows/build.yml)
+[![style](https://github.com/intrinsic-dev/aic/actions/workflows/style.yml/badge.svg)](https://github.com/intrinsic-dev/aic/actions/workflows/style.yml)
 
----
+![](../media/aic_banner.png)
 
-## Running the policy
+The **AI for Industry Challenge** is an open competition for developers and roboticists aimed at solving some of the hardest, high-impact problems in robotics and manufacturing.
 
-Two terminals are required.
-
-### Terminal A — simulation
-
-```bash
-bash ~/ws_aic/src/aic/my_policy_node/scripts/run_sim_sfp.sh
-```
-
-This starts the Gazebo simulation inside the `aic_eval` distrobox with:
-
-- `ground_truth:=true` — publishes task-board TF frames required by the alignment phase
-- `attach_cable_to_gripper:=true` — cable already held at start
-- Auto-restart loop — when `aic_engine` finishes its trials Gazebo shuts down and restarts after 3 s
-
-Keep this terminal running for the full session.
-
-### Terminal B — policy node
-
-```bash
-cd ~/ws_aic/src/aic
-bash my_policy_node/scripts/run_sfp_insertion.sh
-```
-
-This runs:
-
-```bash
-pixi run ros2 run aic_model aic_model \
-  --ros-args \
-  -p use_sim_time:=true \
-  -p policy:=my_policy_node.SFPInsertionPolicy
-```
-
-Stop with `Ctrl+C` in Terminal B first, then Terminal A.
+This repository contains the official toolkit to help participants start developing their solutions. For registration details, official rules, and FAQs, please visit the [AI for Industry Challenge event page](https://www.intrinsic.ai/events/ai-for-industry-challenge).
 
 ---
 
-## Trained model
+## Toolkit Guide
 
-| Item | Value |
-|------|-------|
-| Location | `policy/sfp_insertion_demos_act_20260504_184125_steplast/pretrained_model/` |
-| Architecture | ACT (Action Chunking Transformer) via lerobot 0.5.x |
-| Inputs | Left / centre / right camera images (scaled ×0.25), TCP pose + velocity + error, joint positions (26-dim state), wrist force (3-dim) |
-| Outputs | 7-dim action: Cartesian velocity `[vx, vy, vz, ωx, ωy, ωz, gripper]` |
-| Normalisation | Manual — stats loaded from `policy_preprocessor_step_3_normalizer_processor.safetensors`; `select_action()` expects pre-normalised inputs and returns normalised outputs |
+Welcome to the AIC toolkit documentation. This guide walks you through the complete workflow for participating in the challenge — from understanding the requirements to submitting your solution.
 
-The policy path is resolved automatically in priority order:
-1. Relative to `SFPInsertionPolicy.py` (`../../policy/`)
-2. ROS2 ament share directory
-3. `~/ws_aic/src/aic/my_policy_node/policy/` (fallback)
+Follow the sections below to navigate through each phase of the process.
 
-If multiple `pretrained_model/` directories exist under `policy/`, the most recently modified one is used.
+1. **📖 Understand the Challenge**
+   - Read the [Challenge Overview](./docs/overview.md) to understand the goals.
+   - Review the [Qualification Phase](./docs/phases.md#qualification-phase-train-your-model) to understand what you'll be building.
+   - Review the [Scoring Guide](./docs/scoring.md) to understand how you'll be scored.
 
----
+2. **🔧 Set Up Your Environment**
+   - Follow the [Getting Started](./docs/getting_started.md) guide to set up and validate your development environment.
+   - Run the evaluation container and set up your local workspace with Pixi.
 
-## Implementation — `SFPInsertionPolicy`
+3. **💻 Develop Your Policy**
+   - Explore the [Scene Description](./docs/scene_description.md) to learn how to customize and explore the environment.
+   - Review [AIC Interfaces](./docs/aic_interfaces.md) to understand available interfaces to communicate with sensors and actuators.
+   - Consult [AIC Controller](./docs/aic_controller.md) to learn about controlling the robot.
+   - Consult the [Challenge Rules](./docs/challenge_rules.md) to ensure compliance.
+   - Start with the [Policy Integration Guide](./docs/policy.md) to implement your solution.
+   - See [Participant Utilities](./docs/participant_utilities.md) for a list of helpful tools.
 
-**File:** `my_policy_node/SFPInsertionPolicy.py`
+4. **🧪 Test Your Solution**
+   - Use the provided simulation environment to test your policy.
+   - Run `aic_engine` with the `sample_config` in [`aic_engine/config/`](./aic_engine/config/) to test different scenarios. For more information on running the `aic_engine` with different configs, see the [aic_engine README file](./aic_engine/README.md).
+   - Create your own test scenarios by following the configuration example in [`aic_engine/config/`](./aic_engine/config/) to run with `aic_engine`.
+   - Refer to [Troubleshooting](./docs/troubleshooting.md) if you encounter issues.
 
-### High-level flow
-
-```
-insert_cable()
-  │
-  ├─ _tare()                    Zero F/T sensor at trial start
-  ├─ _wait_for_tf()             Check for task-board TF (ground_truth mode)
-  │
-  ├─ _gt_approach()             Phase 1: KP velocity alignment (position + orientation)
-  │
-  └─ for attempt in 0..10:
-       ├─ attempt 0        → plain ACT
-       ├─ attempts 1-2     → 2 mm backoff + realign → plain ACT
-       ├─ attempts 3-5     → 3 mm backoff + realign → ACT + lateral-hold overlay
-       └─ attempts 6-10    → 3 mm backoff → wiggle entry → ACT
-```
-
-### Phase 1 — Ground-truth approach (`_gt_approach`)
-
-Replicates `InsertionDataCollector._approach()` exactly:
-
-- Looks up port, entrance, and plug TF frames from the simulation ground-truth
-- Computes the **insertion axis** as `(port_pos − entrance_pos) / ‖…‖`
-- Sets target 8 mm before the entrance along `−axis`
-- Commands velocity `v = KP_pos × pos_err + KP_orient × rot_err` at 10 Hz
-- Corrects **both position and orientation simultaneously** (matching training distribution)
-- Declares "settled" after 20 consecutive ticks with `‖pos_err‖ < 2 mm` and `‖rot_err‖ < 1.4°`
-- Times out after 60 s and continues to ACT from current position
-
-| Constant | Value | Description |
-|----------|-------|-------------|
-| `_APPROACH_KP` | 4.0 | Position P-gain |
-| `_APPROACH_ORIENT_KP` | 3.0 | Orientation P-gain |
-| `_APPROACH_Z_ABOVE` | 8 mm | Standoff distance before entrance |
-| `_APPROACH_DONE_M` | 2 mm | Position convergence threshold |
-| `_APPROACH_DONE_RAD` | 0.025 rad (~1.4°) | Orientation convergence threshold |
-| `_APPROACH_SETTLED_TICKS` | 20 | Ticks both stable = done |
-
-### Phase 2 — ACT inference loop (`_act_phase`)
-
-Runs the trained model at **10 Hz**:
-
-1. **Observation preparation** — converts ROS `Observation` message to a dict of normalised tensors (3 camera images + state + wrist force)
-2. **Inference** — `policy.select_action(obs)` → normalised action → manual denormalise → `[vx, vy, vz, ωx, ωy, ωz]`
-3. **Command** — `MotionUpdate` in `MODE_VELOCITY` with Cartesian impedance control (stiffness diag `[100,100,100,50,50,50]`, damping `[40,40,40,15,15,15]`)
-
-**Stall detection** (position-based, not force-based):
-
-- Tracks axial progress of the plug TF along the insertion axis
-- Rate below `0.5 mm/s` for `4 s` → stall declared → returns `"stall"` to trigger recovery
-- First `5 s` of each ACT phase are a **grace period** (no stall check) to allow lateral/orientation correction before axial push begins
-
-**Close-range zone** (`dist_remaining < 10 mm`):
-
-- Stall detection suppressed — plug is expected to stop when fully seated
-- When `dist_remaining ≤ 2 mm` → stop and declare success immediately
-
-> Force is intentionally **not** used for stall detection. The simulated wrist sensor registers inertial spikes whenever the arm accelerates, making force unreliable as a realignment trigger. The F/T sensor is only tared at the start of each trial.
-
-### Recovery strategy
-
-| Attempt | Pullback | Mode |
-|---------|----------|------|
-| 1–2 | 2 mm | Plain ACT |
-| 3–5 | 3 mm | ACT + **lateral-hold overlay** |
-| 6–10 | 3 mm | **Wiggle entry** → ACT |
-
-**Lateral-hold overlay (attempts 3–5)**
-
-Mirrors `InsertionDataCollector`'s `INSERT_HOLD_KP × lat_err`.  Computes the plug's lateral drift (perpendicular to the insertion axis) relative to where the ACT phase started and adds a restoring velocity on top of ACT's output before clipping:
-
-```
-lat_drift = (plug_pos − lat_ref) − axial_component × axis
-lin += 10.0 × (−lat_drift)
-```
-
-**Wiggle entry (attempts 6–10)**
-
-When repeated alignment + ACT still fails:
-
-1. `_gt_approach` with `z_above = 1 mm` (plug positioned flush with entrance)
-2. Circular oscillation in the plane perpendicular to the insertion axis (1.5 mm radius, 1.5 Hz) with a 3 mm/s axial push — sweeps through all lateral offsets
-3. Once plug crosses the 10 mm close-range threshold, oscillation stops and ACT takes over
-
-### F/T tare
-
-`std_srvs/Trigger` is called on `/aic_controller/tare_force_torque_sensor` at the start of every trial (`insert_cable()` entry) to zero the sensor at the robot's home configuration.
-
-### Cartesian impedance parameters
-
-Identical to `InsertionDataCollector` throughout all phases:
-
-| Parameter | Value |
-|-----------|-------|
-| Stiffness (lin) | 100 N/m per axis |
-| Stiffness (rot) | 50 Nm/rad per axis |
-| Damping (lin) | 40 Ns/m per axis |
-| Damping (rot) | 15 Nms/rad per axis |
-| Wrench feedback gains | `[0.5, 0.5, 0.5, 0, 0, 0]` |
+5. **📦 Submit Your Entry**
+   - Package your solution following the [Submission Guidelines](./docs/submission.md).
+   - Test your container locally before submitting following [these instructions](./docs/submission.md#verify-locally).
+   - Submit through the official portal following [these instructions](./docs/submission.md#2-upload-your-image-to-our-registry).
 
 ---
 
-## File layout
+## Toolkit Architecture
+
+![AIC Competition Components](../media/aic_competition_components.png)
+
+The AI for Industry Challenge toolkit is divided into **two main components**:
+
+### 1. Evaluation Component (Provided - Run by Organizers)
+
+This component provides the complete evaluation infrastructure:
+- **`aic_engine`** - Orchestrates trials and computes scores.
+- **`aic_bringup`** - Launches simulation environment (Gazebo, robot, sensors).
+- **`aic_controller`** - Low-level robot control with force management.
+- **`aic_adapter`** - Sensor fusion and data synchronization.
+
+**What you receive:** Standard ROS sensor topics providing camera images, joint states, force/torque measurements, and TF frames.
+
+### 2. Participant Model Component (Your Implementation - What You Submit)
+
+This is what you develop and submit:
+- **A ROS 2 node** that follows the behavioral requirements defined in [Challenge Rules](./docs/challenge_rules.md).
+- **Your custom logic** - Code to process sensor data and command the robot to insert cables.
+
+**What you provide:** A container with a ROS 2 Lifecycle node named `aic_model` that responds to the `/insert_cable` action and outputs robot motion commands via standard ROS topics/services.
+
+**Convenient Entry Point:** We provide an `aic_model` framework that handles all the ROS 2 boilerplate and lifecycle management. You simply implement a Python policy class that gets dynamically loaded at runtime. See the [Policy Integration Guide](./docs/policy.md) for details.
+
+### Development and Submission Workflow
+
+> [!IMPORTANT]
+> **ROS 2 Distribution:** The official evaluation of all submissions will be conducted using **ROS 2 Kilted Kaiju**. If you choose to develop or test your policy using a different ROS 2 distribution (e.g., Humble or Jazzy), it is entirely your responsibility to ensure compatibility and support. Please note that **inter-distro communication is not guaranteed and not officially supported**.
+
+**Development Options:**
+- Develop inside a container (recommended - matches evaluation environment).
+- OR develop in native Ubuntu 24.04 environment (requires all dependencies).
+
+**Submission Requirements:**
+- Package your solution using the provided `aic_model` Dockerfile.
+- Submit your container - it must respond to standard ROS inputs and command the robot to insert cables.
+- Your container interfaces with the evaluation component via ROS topics.
+
+---
+## Repository Structure
 
 ```
-my_policy_node/
-├── my_policy_node/
-│   ├── SFPInsertionPolicy.py     # Main policy (this document)
-│   ├── InsertionDataCollector.py # Training data collector (reference)
-│   ├── CableInsertionPolicy.py   # Earlier HuggingFace-based policy
-│   └── ...
-├── scripts/
-│   ├── run_sim_sfp.sh            # Terminal A: start simulation
-│   ├── run_sfp_insertion.sh      # Terminal B: run policy node
-│   ├── run_sim_sc.sh             # Terminal A variant for SC data collection
-│   ├── collect_sfp_episodes.sh   # Data collection for SFP
-│   └── collect_sc_episodes.sh    # Data collection for SC
-├── notebooks/
-│   └── train_policy_cluster.ipynb  # ACT training notebook (JupyterHub)
-└── policy/
-    └── sfp_insertion_demos_act_20260504_184125_steplast/
-        └── pretrained_model/     # Weights + normalisation stats
+aic/
+├── aic_adapter/          # Adapter for interfacing between model and controller
+├── aic_assets/           # 3D models and simulation assets
+├── aic_bringup/          # Launch files for starting the challenge environment
+├── aic_controller/       # Robot controller implementation
+├── aic_description/      # Robot and environment URDF/SDF descriptions
+├── aic_engine/           # Trial orchestration and validation engine
+├── aic_example_policies/ # Example policy implementations
+├── aic_gazebo/           # Gazebo-specific plugins and configurations
+├── aic_interfaces/       # ROS 2 message, service, and action definitions
+├── aic_model/            # Template for participant policy implementation
+├── aic_scoring/          # Scoring system implementation
+├── aic_utils/            # Utility packages and tools
+├── docker/               # Docker container definitions
+└── docs/                 # Comprehensive documentation
 ```
+
+---
+
+## Key Packages for Participants
+
+### `aic_model` - Convenient Policy Framework (Recommended)
+This package provides a ready-to-use ROS 2 Lifecycle node that dynamically loads and executes your Python policy implementation. It handles all ROS 2 boilerplate, lifecycle management, and challenge rule compliance, allowing you to focus on implementing your policy logic.
+- **Location**: `aic_model/`.
+- **Documentation**: [Policy Integration Guide](./docs/policy.md).
+- **Tutorial**: [Creating a New Policy Node](./docs/policy.md#tutorial-creating-a-new-policy-node).
+
+> **Note:** While we recommend using this framework, you may implement your own ROS 2 node from scratch as long as it adheres to the [Challenge Rules](./docs/challenge_rules.md).
+
+### `aic_interfaces` - Communication Protocols
+Defines all ROS 2 messages, services, and actions used in the challenge.
+- **Location**: `aic_interfaces/`.
+- **Documentation**: [AIC Interfaces](./docs/aic_interfaces.md).
+
+### `aic_example_policies` - Reference Implementations
+Example policies demonstrating different approaches and techniques.
+- **Location**: `aic_example_policies/`.
+- **README**: [aic_example_policies/README.md](./aic_example_policies/README.md).
+
+### `aic_bringup` - Launch the Environment
+Launch files to start the simulation, robot, and scoring systems.
+- **Location**: `aic_bringup/`.
+- **README**: [aic_bringup/README.md](./aic_bringup/README.md).
+
+### `aic_engine` - Trial Orchestrator
+Manages trial execution, validates participant models, and collects scoring data.
+- **Location**: `aic_engine/`.
+- **README**: [aic_engine/README.md](./aic_engine/README.md).
+
+---
+
+## Additional Documentation
+
+### Challenge Information
+
+* **[Challenge Overview](./docs/overview.md):** High-level summary of the competition goals and structure.
+* **[Competition Phases](./docs/phases.md):** Details on Qualification, Phase 1, and Phase 2.
+* **[Qualification Phase](./docs/qualification_phase.md):** Detailed technical overview of the qualification phase trials and scoring.
+* **[Challenge Rules](./docs/challenge_rules.md):** Required behavior for participant models.
+* **[Scoring](./docs/scoring.md):** Metrics and methods used to evaluate performance.
+* **[Scoring Test Examples](./docs/scoring_tests.md):** Reproducible examples exercising each scoring tier with exact commands.
+
+### Technical Documentation
+
+* **[Getting Started](./docs/getting_started.md):** How to set up your local development environment.
+* **[Policy Integration](./docs/policy.md):** Guide to implementing your policy in the `aic_model` framework.
+* **[AIC Interfaces](./docs/aic_interfaces.md):** ROS 2 topics, services, and actions available to your policy.
+* **[AIC Controller](./docs/aic_controller.md):** Understanding the robot controller and motion commands.
+* **[Scene Description](./docs/scene_description.md):** Technical details of the simulation environment.
+* **[Task Board Description](./docs/task_board_description.md):** Physical layout and specifications of the task board.
+* **[Troubleshooting](./docs/troubleshooting.md):** Common issues and debugging strategies.
+
+### Reference Materials
+
+* **[Glossary](./docs/glossary.md):** Terminology and definitions used throughout the AI for Industry Challenge
+
+### Submission
+
+* **[Submission Guidelines](./docs/submission.md):** How to package and submit your final model.
+
+---
+
+
+## Support and Resources
+
+- **Discussions**: Engage in conversations and ask questions about the challenge on [Open Robotics Discourse](https://discourse.openrobotics.org/c/competitions/ai-for-industry-challenge/). The community is encouraged to participate in discussions and assist each other.
+- **Issues**: Report any bugs or technical issues via [GitHub Issues](https://github.com/intrinsic-dev/aic/issues). Please refrain from using the Issue tracker for general questions about the challenge.
+  - **Note:**: Review the list of [known issues](https://github.com/intrinsic-dev/aic/issues?q=is%3Aissue%20state%3Aopen%20label%3A%22known%20issue%22) and [bugs](https://github.com/intrinsic-dev/aic/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug) before opening a new ticket.
+- **Event Page**: Visit the [AI for Industry Challenge](https://www.intrinsic.ai/events/ai-for-industry-challenge) for official updates.
+
+---
+
+## License
+
+This project is licensed under the Apache License 2.0 - see the individual package files for details.
+The [aic_isaac](./aic_utils/aic_isaac/) folder contains files licensed under BSD-3 - see [aic_isaac/LICENSE](./aic_utils/aic_isaac/LICENSE).
