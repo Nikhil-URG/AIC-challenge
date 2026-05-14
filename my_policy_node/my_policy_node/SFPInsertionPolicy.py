@@ -30,7 +30,7 @@ from rclpy.duration import Duration
 from rclpy.node import Node
 from rclpy.time import Time
 from safetensors.torch import load_file
-from tf2_ros import StaticTransformBroadcaster, TransformException
+from tf2_ros import TransformBroadcaster, TransformException
 
 from aic_control_interfaces.msg import MotionUpdate, TrajectoryGenerationMode
 from aic_model.policy import (
@@ -78,6 +78,19 @@ _WIGGLE_FREQ_HZ          = 1.5    # Hz
 _WIGGLE_PUSH_MPS         = 0.003  # gentle axial push during wiggle
 _WIGGLE_TIMEOUT_S        = 20.0
 _MAX_REALIGN_RETRIES     = 10
+
+# ── YOLO/PnP safety and debug ─────────────────────────────────────────────────
+_YOLO_MAX_TARGET_DIST_M   = 0.12
+_YOLO_MAX_UPWARD_STEP_M   = 0.04
+
+# Empirical correction from YOLO/PnP object datum to the simulator's SFP port
+# TF frame. Initial calibration from GT comparison:
+# raw=[-0.4495, 0.2109, 0.1911], gt=[-0.3844, 0.2129, 0.1335].
+_YOLO_PORT_BIAS_M = {
+    CLASS_SFP: np.array([0.0652, 0.0020, -0.0576], dtype=float),
+}
+_YOLO_SFP_AXIS_M = np.array([0.0, 0.0, -1.0], dtype=float)
+_YOLO_SFP_ENTRANCE_OFFSET_M = 0.0458
 
 
 # ── Geometry helpers — copied verbatim from InsertionDataCollector ────────────
@@ -212,13 +225,16 @@ class SFPInsertionPolicy(Policy):
                 self._use_gt = True
         self.get_logger().info(f"SFPInsertionPolicy: use_gt={self._use_gt}")
 
-        # Static TF broadcaster — used to publish YOLO-estimated port frames
-        self._tf_static_pub = StaticTransformBroadcaster(parent_node)
+        # TF broadcaster — used to publish YOLO-estimated debug frames
+        self._tf_pub = TransformBroadcaster(parent_node)
 
         # Marker publisher — sphere + arrow for RViz YOLO detection overlay
         self._marker_pub = parent_node.create_publisher(
             MarkerArray, "/aic/yolo_detections", 10
         )
+        self._debug_transforms: list[TransformStamped] = []
+        self._debug_markers = MarkerArray()
+        self._debug_pub_timer = parent_node.create_timer(0.25, self._republish_debug_pose)
 
         # ── YOLO port-pose detector (optional) ───────────────────────────
         self._pose_detector: Optional[PortPoseDetector] = None
@@ -238,6 +254,19 @@ class SFPInsertionPolicy(Policy):
                 "SFPInsertionPolicy: YOLO pose model not found — "
                 "YOLO-based approach will be disabled"
             )
+
+    def _republish_debug_pose(self) -> None:
+        """Keep YOLO/GT debug TF and markers visible for late RViz subscribers."""
+        if self._debug_transforms:
+            now = self.get_clock().now().to_msg()
+            for tf in self._debug_transforms:
+                tf.header.stamp = now
+                self._tf_pub.sendTransform(tf)
+        if self._debug_markers.markers:
+            now = self.get_clock().now().to_msg()
+            for marker in self._debug_markers.markers:
+                marker.header.stamp = now
+            self._marker_pub.publish(self._debug_markers)
 
     # ── Model path resolution ─────────────────────────────────────────────
 
@@ -663,6 +692,11 @@ class SFPInsertionPolicy(Policy):
         ins_axis: np.ndarray,
         cam_R: np.ndarray,
         conf: float = 1.0,
+        *,
+        frame_prefix: str = "yolo",
+        marker_ns: str = "yolo",
+        color: tuple = (1.0, 0.6, 0.0),
+        publish_tf: bool = True,
     ) -> None:
         """
         Publish port and entrance TF frames estimated from YOLO detection,
@@ -675,23 +709,35 @@ class SFPInsertionPolicy(Policy):
         now = self.get_clock().now().to_msg()
         qx, qy, qz, qw = self._rot_to_quat(cam_R)
         entrance_pos = port_pos - ins_axis * 0.02
+        if frame_prefix:
+            port_frame = f"{frame_prefix}/{port_frame}"
+            entrance_frame = f"{frame_prefix}/{entrance_frame}"
 
-        for child_id, pos in [
-            (port_frame,     port_pos),
-            (entrance_frame, entrance_pos),
-        ]:
-            tf = TransformStamped()
-            tf.header.stamp = now
-            tf.header.frame_id = "base_link"
-            tf.child_frame_id = child_id
-            tf.transform.translation.x = float(pos[0])
-            tf.transform.translation.y = float(pos[1])
-            tf.transform.translation.z = float(pos[2])
-            tf.transform.rotation.x = qx
-            tf.transform.rotation.y = qy
-            tf.transform.rotation.z = qz
-            tf.transform.rotation.w = qw
-            self._tf_static_pub.sendTransform(tf)
+        transforms = []
+        if publish_tf:
+            for child_id, pos in [
+                (port_frame,     port_pos),
+                (entrance_frame, entrance_pos),
+            ]:
+                tf = TransformStamped()
+                tf.header.stamp = now
+                tf.header.frame_id = "base_link"
+                tf.child_frame_id = child_id
+                tf.transform.translation.x = float(pos[0])
+                tf.transform.translation.y = float(pos[1])
+                tf.transform.translation.z = float(pos[2])
+                tf.transform.rotation.x = qx
+                tf.transform.rotation.y = qy
+                tf.transform.rotation.z = qz
+                tf.transform.rotation.w = qw
+                transforms.append(tf)
+            child_ids = {tf.child_frame_id for tf in transforms}
+            self._debug_transforms = [
+                tf for tf in self._debug_transforms
+                if tf.child_frame_id not in child_ids
+            ] + transforms
+            for tf in transforms:
+                self._tf_pub.sendTransform(tf)
 
         # ── RViz markers ─────────────────────────────────────────────────
         markers = MarkerArray()
@@ -700,7 +746,7 @@ class SFPInsertionPolicy(Policy):
         sphere = Marker()
         sphere.header.stamp = now
         sphere.header.frame_id = "base_link"
-        sphere.ns = "yolo_port"
+        sphere.ns = f"{marker_ns}_port"
         sphere.id = 0
         sphere.type = Marker.SPHERE
         sphere.action = Marker.ADD
@@ -709,18 +755,18 @@ class SFPInsertionPolicy(Policy):
         sphere.pose.position.z = float(port_pos[2])
         sphere.pose.orientation.w = 1.0
         sphere.scale.x = sphere.scale.y = sphere.scale.z = 0.015  # 15 mm sphere
-        sphere.color.r = 0.0
-        sphere.color.g = float(conf)   # greener = higher confidence
-        sphere.color.b = 1.0 - float(conf)
+        sphere.color.r = float(color[0])
+        sphere.color.g = float(color[1])
+        sphere.color.b = float(color[2])
         sphere.color.a = 0.85
-        sphere.lifetime.sec = 2  # auto-remove after 2 s if not refreshed
+        sphere.lifetime.sec = 0
         markers.markers.append(sphere)
 
         # Arrow along insertion axis (entrance → port)
         arrow = Marker()
         arrow.header.stamp = now
         arrow.header.frame_id = "base_link"
-        arrow.ns = "yolo_axis"
+        arrow.ns = f"{marker_ns}_axis"
         arrow.id = 1
         arrow.type = Marker.ARROW
         arrow.action = Marker.ADD
@@ -733,14 +779,38 @@ class SFPInsertionPolicy(Policy):
         arrow.scale.x = 0.004  # shaft diameter
         arrow.scale.y = 0.008  # head diameter
         arrow.scale.z = 0.005  # head length
-        arrow.color.r = 1.0
-        arrow.color.g = 0.6
-        arrow.color.b = 0.0
+        arrow.color.r = float(color[0])
+        arrow.color.g = float(color[1])
+        arrow.color.b = float(color[2])
         arrow.color.a = 0.9
-        arrow.lifetime.sec = 2
+        arrow.lifetime.sec = 0
         markers.markers.append(arrow)
 
+        namespaces = {marker.ns for marker in markers.markers}
+        self._debug_markers.markers = [
+            marker for marker in self._debug_markers.markers
+            if marker.ns not in namespaces
+        ] + markers.markers
         self._marker_pub.publish(markers)
+
+    def _publish_gt_markers(self, port_pos: np.ndarray, entrance_pos: np.ndarray) -> None:
+        """Publish GT port/axis markers for direct RViz comparison with YOLO."""
+        delta = port_pos - entrance_pos
+        dlen = np.linalg.norm(delta)
+        if dlen < 1e-6:
+            return
+        self._publish_yolo_tfs(
+            "gt_port_marker",
+            "gt_port_marker_entrance",
+            port_pos,
+            delta / dlen,
+            np.eye(3),
+            1.0,
+            frame_prefix="debug",
+            marker_ns="gt",
+            color=(0.0, 1.0, 0.1),
+            publish_tf=False,
+        )
 
     def _yolo_detect_tf(
         self,
@@ -753,8 +823,8 @@ class SFPInsertionPolicy(Policy):
         min_conf: float = 0.70,
     ) -> bool:
         """
-        Detect the target port with YOLO and publish its pose as static TF
-        frames so _gt_approach can align to them.  Does NOT move the robot.
+        Detect the target port with YOLO and publish its pose as debug TF
+        frames and markers. Does NOT move the robot.
 
         Returns True once a detection with confidence ≥ min_conf is found
         (or the best detection seen before timeout_sec).
@@ -767,6 +837,7 @@ class SFPInsertionPolicy(Policy):
         best_port_pos:  Optional[np.ndarray] = None
         best_ins_axis:  Optional[np.ndarray] = None
         best_cam_R:     Optional[np.ndarray] = None
+        best_cam_name:  str              = "unknown"
 
         while time.time() - t0 < timeout_sec:
             obs = get_observation()
@@ -782,9 +853,12 @@ class SFPInsertionPolicy(Policy):
                 continue
 
             conf = det["conf"]
+            raw_msg = ""
+            if "raw_port_pos" in det:
+                raw_msg = f" raw={det['raw_port_pos'].round(3)}"
             send_feedback(
                 f"YOLO({cam_name}) cls={det['class_id']} conf={conf:.2f} "
-                f"pos={port_pos.round(3)}"
+                f"pos={port_pos.round(3)}{raw_msg}"
             )
 
             if conf > best_conf:
@@ -792,6 +866,7 @@ class SFPInsertionPolicy(Policy):
                 best_port_pos = port_pos
                 best_ins_axis = ins_axis
                 best_cam_R    = cam_R
+                best_cam_name = cam_name
 
             # Publish TF immediately so RViz shows it while scanning
             self._publish_yolo_tfs(
@@ -809,7 +884,7 @@ class SFPInsertionPolicy(Policy):
             )
             return False
 
-        # Publish the best estimate as a persistent static TF + final marker
+        # Publish the best estimate as a final debug TF + marker
         self._publish_yolo_tfs(
             port_frame, entrance_frame, best_port_pos, best_ins_axis, best_cam_R, best_conf
         )
@@ -817,10 +892,74 @@ class SFPInsertionPolicy(Policy):
         self._insertion_axis = best_ins_axis
 
         self.get_logger().info(
-            f"YOLO TF published: {port_frame}  "
+            f"YOLO TF published: yolo/{port_frame}  cam={best_cam_name}  "
             f"conf={best_conf:.2f}  pos={best_port_pos.round(3)}"
         )
         return True
+
+    def _publish_yolo_gt_comparison(
+        self,
+        task: Task,
+        target_class: int,
+        port_frame: str,
+        entrance_frame: str,
+        get_observation: GetObservationCallback,
+        send_feedback: SendFeedbackCallback,
+    ) -> None:
+        """
+        When GT TF exists, publish both GT and YOLO estimates and log the error.
+
+        This intentionally does not feed the YOLO result into the controller.
+        It is a diagnostics path so bad PnP estimates are visible without moving
+        the arm toward them.
+        """
+        gt_port, _ = self._lookup_pos_rot(port_frame)
+        gt_entrance = self._lookup_pos(entrance_frame)
+        if gt_port is None or gt_entrance is None:
+            return
+
+        self._publish_gt_markers(gt_port, gt_entrance)
+        if self._pose_detector is None:
+            return
+
+        saved_port = None if self._port_pos is None else self._port_pos.copy()
+        saved_axis = None if self._insertion_axis is None else self._insertion_axis.copy()
+        ok = self._yolo_detect_tf(
+            target_class,
+            port_frame,
+            entrance_frame,
+            get_observation,
+            send_feedback,
+            timeout_sec=2.0,
+            min_conf=0.95,
+        )
+        if not ok or self._port_pos is None:
+            self._port_pos = saved_port
+            self._insertion_axis = saved_axis
+            return
+
+        yolo_port = self._port_pos.copy()
+        err = yolo_port - gt_port
+        raw_note = ""
+        if _YOLO_PORT_BIAS_M.get(target_class) is not None:
+            raw_yolo = yolo_port - _YOLO_PORT_BIAS_M[target_class]
+            raw_err = raw_yolo - gt_port
+            raw_note = (
+                f" raw_dx={raw_err[0]*1000:.1f}mm"
+                f" raw_dy={raw_err[1]*1000:.1f}mm"
+                f" raw_dz={raw_err[2]*1000:.1f}mm"
+                f" raw_norm={np.linalg.norm(raw_err)*1000:.1f}mm"
+            )
+        self.get_logger().warn(
+            "YOLO vs GT port error "
+            f"task={task.target_module_name}/{task.port_name} "
+            f"dx={err[0]*1000:.1f}mm dy={err[1]*1000:.1f}mm "
+            f"dz={err[2]*1000:.1f}mm norm={np.linalg.norm(err)*1000:.1f}mm "
+            f"gt={gt_port.round(4)} yolo={yolo_port.round(4)}{raw_note}"
+        )
+
+        self._port_pos = saved_port
+        self._insertion_axis = saved_axis
 
     # ── YOLO-based approach (no ground-truth TF required) ────────────────
 
@@ -848,6 +987,7 @@ class SFPInsertionPolicy(Policy):
             if ci.width == 0 or not any(ci.k):
                 continue
             K         = np.array(ci.k).reshape(3, 3)
+            D         = np.array(ci.d, dtype=np.float64) if ci.d else None
             cam_frame = ci.header.frame_id
             img_w, img_h = img_msg.width, img_msg.height
 
@@ -864,10 +1004,16 @@ class SFPInsertionPolicy(Policy):
                 continue
 
             port_pos, ins_axis = self._pose_detector.estimate_port_3d(
-                det, K, cam_pos, cam_R, img_w, img_h
+                det, K, cam_pos, cam_R, img_w, img_h, D
             )
             if port_pos is None:
                 continue
+            raw_port_pos = port_pos.copy()
+            bias = _YOLO_PORT_BIAS_M.get(target_class)
+            if bias is not None:
+                port_pos = port_pos + bias
+                det["raw_port_pos"] = raw_port_pos
+                det["bias_m"] = bias
 
             if det["conf"] > best_conf:
                 best_conf = det["conf"]
@@ -880,6 +1026,7 @@ class SFPInsertionPolicy(Policy):
         get_observation: GetObservationCallback,
         move_robot: MoveRobotCallback,
         send_feedback: SendFeedbackCallback,
+        target_class: int,
         standoff_m: float = 0.04,    # metres in front of port along insertion axis
         timeout_sec: float = 25.0,
         done_m: float = 0.008,       # 8 mm position tolerance
@@ -895,11 +1042,43 @@ class SFPInsertionPolicy(Policy):
             self.get_logger().warn("_approach_to_yolo_pos: no YOLO estimate available")
             return False
 
-        target = self._port_pos - self._insertion_axis * standoff_m
+        axis = self._insertion_axis
+        entrance_pos = self._port_pos
+        if target_class == CLASS_SFP:
+            # The corrected YOLO point is aligned to the simulator's SFP port
+            # TF, not the entrance TF. Mirror GT approach:
+            # entrance = port - axis * 45.8 mm, target = entrance - axis * standoff.
+            axis = _YOLO_SFP_AXIS_M / np.linalg.norm(_YOLO_SFP_AXIS_M)
+            entrance_pos = self._port_pos - axis * _YOLO_SFP_ENTRANCE_OFFSET_M
+            self._insertion_axis = axis
+
+        target = entrance_pos - axis * standoff_m
+        obs0 = get_observation()
+        if obs0 is not None:
+            p0 = obs0.controller_state.tcp_pose.position
+            tcp0 = np.array([p0.x, p0.y, p0.z])
+            target_delta = target - tcp0
+            target_dist = float(np.linalg.norm(target_delta))
+            upward_step = float(target_delta[2])
+            if (
+                (target_dist > _YOLO_MAX_TARGET_DIST_M and upward_step > 0.0)
+                or upward_step > _YOLO_MAX_UPWARD_STEP_M
+            ):
+                self.get_logger().error(
+                    "Rejecting YOLO approach target as implausible: "
+                    f"tcp={tcp0.round(4)} target={target.round(4)} "
+                    f"delta_mm={np.round(target_delta * 1000, 1)} "
+                    f"dist={target_dist*1000:.1f}mm "
+                    f"up={upward_step*1000:.1f}mm"
+                )
+                send_feedback("YOLO PnP target rejected; skipping visual approach")
+                return False
+
         self.get_logger().info(
             f">>> YOLO approach START  "
             f"port={self._port_pos.round(4)}  "
-            f"axis={self._insertion_axis.round(4)}  "
+            f"entrance={entrance_pos.round(4)}  "
+            f"axis={axis.round(4)}  "
             f"target={target.round(4)}  "
             f"standoff={standoff_m*1000:.1f}mm"
         )
@@ -1059,6 +1238,8 @@ class SFPInsertionPolicy(Policy):
 
         port_frame    = f"task_board/{task.target_module_name}/{task.port_name}_link"
         entrance_frame = port_frame + "_entrance"
+        port_lower = task.port_name.lower()
+        target_cls = CLASS_SC if "sc" in port_lower else CLASS_SFP
 
         # Check ground-truth TF availability (skip wait entirely when use_gt=False)
         if self._use_gt:
@@ -1068,9 +1249,6 @@ class SFPInsertionPolicy(Policy):
             self.get_logger().info("ground_truth=false — skipping GT TF wait")
 
         if not has_gt:
-            port_lower = task.port_name.lower()
-            target_cls = CLASS_SC if "sc" in port_lower else CLASS_SFP
-
             if self._pose_detector is not None:
                 self.get_logger().info(
                     f"No GT TF — YOLO scan (class={target_cls}, all cameras, arm still)"
@@ -1099,24 +1277,48 @@ class SFPInsertionPolicy(Policy):
                     send_feedback(
                         f"YOLO port at {self._port_pos.round(3)} — approaching 2 mm above..."
                     )
-                    self._approach_to_yolo_pos(
+                    approach_ok = self._approach_to_yolo_pos(
                         get_observation, move_robot, send_feedback,
+                        target_class=target_cls,
                         standoff_m=0.002,
                         timeout_sec=25.0,
                     )
+                    if not approach_ok:
+                        self.get_logger().error(
+                            "YOLO approach failed or was rejected; refusing ACT "
+                            "handoff because TCP is outside ACT start distribution."
+                        )
+                        send_feedback("YOLO approach failed — not starting ACT")
+                        self._stop(move_robot)
+                        return False
                     send_feedback("Approach done — starting ACT insertion...")
                 else:
                     self.get_logger().warn(
-                        "YOLO: no detection — ACT starting from current position"
+                        "YOLO: no detection — refusing ACT handoff from current position"
                     )
-                    send_feedback("YOLO missed — running ACT from current position...")
+                    send_feedback("YOLO missed — not starting ACT")
+                    self._stop(move_robot)
+                    return False
             else:
-                self.get_logger().info("No GT TF, no YOLO model — ACT-only.")
-                send_feedback("ACT-only (no pose detection available)...")
+                self.get_logger().error(
+                    "No GT TF and no YOLO model; refusing ACT handoff from "
+                    "unverified current position."
+                )
+                send_feedback("No pose detection — not starting ACT")
+                self._stop(move_robot)
+                return False
 
             self._act_phase(get_observation, move_robot, send_feedback)
             return True
 
+        self._publish_yolo_gt_comparison(
+            task,
+            target_cls,
+            port_frame,
+            entrance_frame,
+            get_observation,
+            send_feedback,
+        )
         send_feedback("GT approach: aligning position and orientation...")
         self._gt_approach(task, move_robot, send_feedback)
         self.sleep_for(0.3)
