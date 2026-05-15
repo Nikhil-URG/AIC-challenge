@@ -90,6 +90,8 @@ _YOLO_CALIBRATION_PROBE_M = 0.003
 _YOLO_CALIBRATION_MAX_POS_SPREAD_M = 0.030
 _YOLO_CALIBRATION_MAX_Z_SPREAD_M = 0.020
 _YOLO_CALIBRATION_MAX_AXIS_SPREAD_RAD = math.radians(35.0)
+_YOLO_WRIST_NUDGE_RAD = math.radians(3.0)
+_YOLO_WRIST_NUDGE_SPEED_RAD_S = 0.15
 
 # Empirical correction from YOLO/PnP object datum to the simulator's SFP port
 # TF frame. Initial calibration from GT comparison:
@@ -1207,6 +1209,35 @@ class SFPInsertionPolicy(Policy):
 
         return best
 
+    def _lookup_active_insert_point(self, obs=None) -> tuple[Optional[np.ndarray], str]:
+        if self._task is not None:
+            for frame in self._plug_frame_candidates(self._task):
+                plug_pos = self._lookup_pos(frame)
+                if plug_pos is not None:
+                    return plug_pos, frame
+
+        if obs is None:
+            return None, ""
+        tcp = obs.controller_state.tcp_pose
+        return (
+            np.array([tcp.position.x, tcp.position.y, tcp.position.z], dtype=float),
+            "gripper/tcp",
+        )
+
+    @staticmethod
+    def _plug_frame_candidates(task: Task) -> list[str]:
+        frames = [
+            f"{task.cable_name}/{task.plug_name}_link",
+            f"{task.cable_name}/{task.plug_name}",
+            f"{task.plug_name}_link",
+            task.plug_name,
+        ]
+        if task.plug_name != "sfp_tip":
+            frames.extend(["sfp_tip_link", "sfp_tip"])
+        if task.plug_name != "sc_tip":
+            frames.extend(["sc_tip_link", "sc_tip"])
+        return list(dict.fromkeys(frames))
+
     def _move_tcp_delta(
         self,
         get_observation: GetObservationCallback,
@@ -1244,6 +1275,26 @@ class SFPInsertionPolicy(Policy):
         self._stop(move_robot)
         return False
 
+    def _rotate_wrist_delta(
+        self,
+        move_robot: MoveRobotCallback,
+        axis: np.ndarray,
+        angle_rad: float,
+    ) -> None:
+        axis = np.asarray(axis, dtype=float)
+        norm = float(np.linalg.norm(axis))
+        if norm < 1e-6 or abs(angle_rad) < 1e-5:
+            return
+        axis = axis / norm
+        speed = _YOLO_WRIST_NUDGE_SPEED_RAD_S
+        duration = abs(angle_rad) / speed
+        ang = axis * (speed if angle_rad > 0.0 else -speed)
+        t0 = time.time()
+        while time.time() - t0 < duration:
+            self._send_cmd(move_robot, np.zeros(3), ang)
+            self.sleep_for(1.0 / 20)
+        self._stop(move_robot)
+
     def _yolo_pose_sample(self, get_observation: GetObservationCallback, target_class: int):
         obs = get_observation()
         if obs is None:
@@ -1262,6 +1313,93 @@ class SFPInsertionPolicy(Policy):
             "cam_R": cam_R,
             "cam_name": cam_name,
         }
+
+    def _wrist_angle_calibration(
+        self,
+        target_class: int,
+        port_frame: str,
+        entrance_frame: str,
+        get_observation: GetObservationCallback,
+        move_robot: MoveRobotCallback,
+        send_feedback: SendFeedbackCallback,
+    ) -> bool:
+        if self._pose_detector is None:
+            return False
+
+        axis = self._insertion_axis
+        if axis is None or float(np.linalg.norm(axis)) < 1e-6:
+            axis = np.array([0.0, 0.0, -1.0], dtype=float)
+        axis = np.asarray(axis, dtype=float)
+        axis /= max(np.linalg.norm(axis), 1e-9)
+
+        def sample_score(item):
+            return item[1]["det"].get("selection_score", self._yolo_selection_score(item[1]["det"]))
+
+        def nudge_one_axis(nudge_axis: np.ndarray, label: str) -> bool:
+            send_feedback(f"YOLO calibration: nudging wrist {label}...")
+            samples = []
+            sample0 = self._yolo_pose_sample(get_observation, target_class)
+            if sample0 is not None:
+                samples.append((0, sample0))
+
+            self._rotate_wrist_delta(move_robot, nudge_axis, _YOLO_WRIST_NUDGE_RAD)
+            self.sleep_for(0.15)
+            sample_plus = self._yolo_pose_sample(get_observation, target_class)
+            if sample_plus is not None:
+                samples.append((1, sample_plus))
+
+            self._rotate_wrist_delta(move_robot, nudge_axis, -2.0 * _YOLO_WRIST_NUDGE_RAD)
+            self.sleep_for(0.15)
+            sample_minus = self._yolo_pose_sample(get_observation, target_class)
+            if sample_minus is not None:
+                samples.append((-1, sample_minus))
+
+            if not samples:
+                self._rotate_wrist_delta(move_robot, nudge_axis, _YOLO_WRIST_NUDGE_RAD)
+                self.get_logger().warn(
+                    f"YOLO wrist {label} nudge: no PnP samples; returning to center"
+                )
+                return False
+
+            best_angle_index, best = max(samples, key=sample_score)
+            # We are currently at -1 nudge. Move to whichever sampled angle looked best.
+            self._rotate_wrist_delta(
+                move_robot,
+                nudge_axis,
+                (best_angle_index + 1) * _YOLO_WRIST_NUDGE_RAD,
+            )
+
+            self._port_pos = best["port_pos"]
+            self._insertion_axis = best["ins_axis"]
+            self._publish_yolo_tfs(
+                port_frame,
+                entrance_frame,
+                self._port_pos,
+                self._insertion_axis,
+                best["cam_R"],
+                float(best["det"].get("conf", 0.0)),
+            )
+            self.get_logger().info(
+                f"YOLO wrist {label} nudge selected "
+                f"{best_angle_index * math.degrees(_YOLO_WRIST_NUDGE_RAD):.1f}deg "
+                f"cam={best['cam_name']} pos={self._port_pos.round(4)} "
+                f"axis={self._insertion_axis.round(4)}"
+            )
+            send_feedback(
+                f"YOLO wrist {label} nudge selected "
+                f"{best_angle_index * math.degrees(_YOLO_WRIST_NUDGE_RAD):.0f} deg"
+            )
+            return True
+
+        changed = nudge_one_axis(axis, "twist")
+
+        side_axis = np.cross(axis, np.array([0.0, 0.0, 1.0], dtype=float))
+        if float(np.linalg.norm(side_axis)) < 1e-6:
+            side_axis = np.cross(axis, np.array([1.0, 0.0, 0.0], dtype=float))
+        side_axis /= max(np.linalg.norm(side_axis), 1e-9)
+        changed = nudge_one_axis(side_axis, "tilt") or changed
+
+        return changed
 
     def _yolo_probe_axis(self, get_observation: GetObservationCallback) -> np.ndarray:
         obs = get_observation()
@@ -1286,6 +1424,15 @@ class SFPInsertionPolicy(Policy):
     ) -> bool:
         if self._pose_detector is None:
             return False
+
+        self._wrist_angle_calibration(
+            target_class,
+            port_frame,
+            entrance_frame,
+            get_observation,
+            move_robot,
+            send_feedback,
+        )
 
         send_feedback("YOLO calibration: probing keypoints left/right...")
         probe_axis = self._yolo_probe_axis(get_observation)
@@ -1316,8 +1463,8 @@ class SFPInsertionPolicy(Policy):
                 samples.append(sample)
 
         if len(samples) < 2:
-            self.get_logger().warn("YOLO calibration: not enough PnP samples")
-            send_feedback("YOLO calibration failed: not enough stable detections")
+            self.get_logger().warn("YOLO calibration: not enough PnP samples; continuing")
+            send_feedback("YOLO calibration skipped: not enough stable detections")
             return False
 
         positions = np.stack([s["port_pos"] for s in samples], axis=0)
@@ -1351,13 +1498,13 @@ class SFPInsertionPolicy(Policy):
             or z_spread > _YOLO_CALIBRATION_MAX_Z_SPREAD_M
             or axis_spread > _YOLO_CALIBRATION_MAX_AXIS_SPREAD_RAD
         ):
-            self.get_logger().error(
-                "Rejecting YOLO handoff: calibration samples disagree "
+            self.get_logger().warn(
+                "YOLO calibration samples disagree; keeping current pose estimate "
                 f"(pos_spread={pos_spread*1000:.1f}mm, "
                 f"z_spread={z_spread*1000:.1f}mm, "
                 f"axis_spread={math.degrees(axis_spread):.1f}deg)"
             )
-            send_feedback("YOLO calibration rejected unstable PnP pose")
+            send_feedback("YOLO calibration noisy — continuing with refined pose")
             return False
 
         best_i = int(np.argmin(np.linalg.norm(positions - median_pos, axis=1)))
@@ -1418,22 +1565,26 @@ class SFPInsertionPolicy(Policy):
             target = entrance_pos - axis * standoff_m
         obs0 = get_observation()
         if obs0 is not None:
-            p0 = obs0.controller_state.tcp_pose.position
-            tcp0 = np.array([p0.x, p0.y, p0.z])
-            target_delta = target - tcp0
+            point0, point_frame0 = self._lookup_active_insert_point(obs0)
+            if point0 is None:
+                self.get_logger().warn("YOLO approach: no plug or TCP point available")
+                return False
+            target_delta = target - point0
             target_dist = float(np.linalg.norm(target_delta))
             vertical_step = float(target_delta[2])
+            max_downward_step = max(_YOLO_MAX_DOWNWARD_STEP_M, standoff_m + 0.02)
             if (
                 (target_dist > _YOLO_MAX_TARGET_DIST_M and vertical_step > 0.0)
                 or vertical_step > _YOLO_MAX_UPWARD_STEP_M
-                or vertical_step < -_YOLO_MAX_DOWNWARD_STEP_M
+                or vertical_step < -max_downward_step
             ):
                 self.get_logger().error(
                     "Rejecting YOLO approach target as implausible: "
-                    f"tcp={tcp0.round(4)} target={target.round(4)} "
+                    f"point={point_frame0} pos={point0.round(4)} target={target.round(4)} "
                     f"delta_mm={np.round(target_delta * 1000, 1)} "
                     f"dist={target_dist*1000:.1f}mm "
-                    f"vertical={vertical_step*1000:.1f}mm"
+                    f"vertical={vertical_step*1000:.1f}mm "
+                    f"limit={max_downward_step*1000:.1f}mm"
                 )
                 send_feedback("YOLO PnP target rejected; skipping visual approach")
                 return False
@@ -1456,12 +1607,12 @@ class SFPInsertionPolicy(Policy):
                 self.sleep_for(0.05)
                 continue
 
-            tcp = obs.controller_state.tcp_pose
-            tcp_pos = np.array([
-                tcp.position.x, tcp.position.y, tcp.position.z,
-            ])
+            active_pos, active_frame = self._lookup_active_insert_point(obs)
+            if active_pos is None:
+                self.sleep_for(0.05)
+                continue
 
-            pos_err = target - tcp_pos
+            pos_err = target - active_pos
             err_m = float(np.linalg.norm(pos_err))
 
             lin_vel = _APPROACH_KP * pos_err
@@ -1472,7 +1623,7 @@ class SFPInsertionPolicy(Policy):
 
             if int((time.time() - t0) * 5) % 5 == 0:
                 send_feedback(
-                    f"YOLO approach: err={err_m*1000:.0f}mm "
+                    f"YOLO approach ({active_frame}): err={err_m*1000:.0f}mm "
                     f"target=[{target[0]:.3f},{target[1]:.3f},{target[2]:.3f}]"
                 )
 
@@ -1481,7 +1632,8 @@ class SFPInsertionPolicy(Policy):
                 if settled >= 5:   # 0.5 s stable at 10 Hz
                     self._stop(move_robot)
                     self.get_logger().info(
-                        f"YOLO pos-approach complete: err={err_m*1000:.1f}mm"
+                        f"YOLO pos-approach complete: point={active_frame} "
+                        f"err={err_m*1000:.1f}mm"
                     )
                     return True
             else:
@@ -1642,6 +1794,7 @@ class SFPInsertionPolicy(Policy):
                 # standoff. This gives the second PnP pass a larger target in
                 # the image without jumping straight into the port.
                 if yolo_ok:
+                    force_servo_insert = False
                     # Log TCP vs port so we know how far the arm is from detection
                     obs0 = get_observation()
                     if obs0 is not None:
@@ -1665,8 +1818,8 @@ class SFPInsertionPolicy(Policy):
                     )
                     if not approach_ok:
                         self.get_logger().error(
-                            "YOLO approach failed or was rejected; refusing ACT "
-                            "handoff because TCP is outside ACT start distribution."
+                            "YOLO approach failed or was rejected; refusing insertion "
+                            "from an unverified pre-insertion pose."
                         )
                         send_feedback("YOLO approach failed — not starting ACT")
                         self._stop(move_robot)
@@ -1689,7 +1842,7 @@ class SFPInsertionPolicy(Policy):
                                 "the initial estimate"
                             )
 
-                    calibrated_ok = self._calibrate_yolo_pose_probe(
+                    self._calibrate_yolo_pose_probe(
                         target_cls,
                         port_frame,
                         entrance_frame,
@@ -1697,13 +1850,6 @@ class SFPInsertionPolicy(Policy):
                         move_robot,
                         send_feedback,
                     )
-                    if not calibrated_ok:
-                        self.get_logger().error(
-                            "YOLO calibration failed; refusing handoff because "
-                            "PnP pose is not stable under small camera motion."
-                        )
-                        self._stop(move_robot)
-                        return False
 
                     handoff_standoff_m = self._handoff_standoff_for_class(target_cls)
                     if abs(handoff_standoff_m - self._yolo_approach_standoff_m) > 1e-4:
@@ -1724,14 +1870,6 @@ class SFPInsertionPolicy(Policy):
                             timeout_sec=25.0,
                         )
                         if not approach_ok:
-                            if self._act_available:
-                                self.get_logger().error(
-                                    "YOLO handoff approach failed; refusing ACT "
-                                    "handoff because TCP is outside ACT start distribution."
-                                )
-                                send_feedback("YOLO handoff approach failed — not starting ACT")
-                                self._stop(move_robot)
-                                return False
                             self.get_logger().warn(
                                 "YOLO handoff approach failed; continuing with "
                                 "servo insertion fallback from the current pose."
@@ -1739,9 +1877,14 @@ class SFPInsertionPolicy(Policy):
                             send_feedback(
                                 "YOLO handoff did not settle — starting servo insertion anyway"
                             )
+                            force_servo_insert = True
                     send_feedback(
                         "Approach done — starting "
-                        + ("ACT insertion..." if self._act_available else "servo insertion...")
+                        + (
+                            "servo insertion..."
+                            if force_servo_insert or not self._act_available
+                            else "ACT insertion..."
+                        )
                     )
                 else:
                     self.get_logger().warn(
@@ -1759,7 +1902,12 @@ class SFPInsertionPolicy(Policy):
                 self._stop(move_robot)
                 return False
 
-            result = self._act_phase(get_observation, move_robot, send_feedback)
+            if "force_servo_insert" in locals() and force_servo_insert:
+                result = self._servo_insert_phase(
+                    get_observation, move_robot, send_feedback,
+                )
+            else:
+                result = self._act_phase(get_observation, move_robot, send_feedback)
             if result == "stall":
                 send_feedback("No insertion progress — final reachable pose, stopping task")
                 self.get_logger().warn(
@@ -1845,10 +1993,7 @@ class SFPInsertionPolicy(Policy):
         along that axis and optionally corrects lateral drift from plug TF.
         """
         task = self._task
-        plug_frames = [
-            f"{task.cable_name}/{task.plug_name}_link",
-            f"{task.cable_name}/{task.plug_name}",
-        ]
+        plug_frames = self._plug_frame_candidates(task)
 
         axis = np.asarray(self._insertion_axis, dtype=float)
         norm = float(np.linalg.norm(axis))
@@ -1978,10 +2123,7 @@ class SFPInsertionPolicy(Policy):
 
         # Build plug frame list from stored task
         task = self._task
-        plug_frames = [
-            f"{task.cable_name}/{task.plug_name}_link",
-            f"{task.cable_name}/{task.plug_name}",
-        ]
+        plug_frames = self._plug_frame_candidates(task)
 
         start = time.time()
         step = 0
