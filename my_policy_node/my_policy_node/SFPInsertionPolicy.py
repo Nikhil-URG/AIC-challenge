@@ -233,6 +233,15 @@ class SFPInsertionPolicy(Policy):
     """
 
     def __init__(self, parent_node: Node):
+        # Lazy-load heavy ML libs: module discovery has 30s budget, on_configure has 60s.
+        global torch, cv2, draccus, load_file, ACTConfig, ACTPolicy
+        import torch
+        import cv2
+        import draccus
+        from safetensors.torch import load_file
+        from lerobot.policies.act.configuration_act import ACTConfig
+        from lerobot.policies.act.modeling_act import ACTPolicy
+
         super().__init__(parent_node)
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self._insertion_axis: np.ndarray = np.array([0.0, 0.0, -1.0])  # updated by _gt_approach
@@ -437,8 +446,8 @@ class SFPInsertionPolicy(Policy):
         """Zero the force/torque sensor so readings start from 0 each trial."""
         if self._tare_cli.wait_for_service(timeout_sec=1.0):
             future = self._tare_cli.call_async(Trigger.Request())
-            deadline = time.monotonic() + 3.0
-            while not future.done() and time.monotonic() < deadline:
+            deadline = self.time_now().nanoseconds / 1e9 + 3.0
+            while not future.done() and self.time_now().nanoseconds / 1e9 < deadline:
                 self.sleep_for(0.05)
             self.get_logger().info("F/T sensor tared")
         else:
@@ -544,8 +553,8 @@ class SFPInsertionPolicy(Policy):
             f"{(-self._insertion_axis).round(3)} for {dur:.2f}s"
         )
         send_feedback(f"Backing off {dist_m*1000:.0f} mm...")
-        t0 = time.time()
-        while time.time() - t0 < dur:
+        t0 = self.time_now().nanoseconds / 1e9
+        while self.time_now().nanoseconds / 1e9 - t0 < dur:
             self._send_cmd(move_robot, backoff_vel)
             self.sleep_for(0.05)
         self._stop(move_robot)
@@ -581,10 +590,10 @@ class SFPInsertionPolicy(Policy):
 
         send_feedback("Wiggle entry: searching for port...")
         w = 2.0 * math.pi * _WIGGLE_FREQ_HZ
-        t0 = time.time()
+        t0 = self.time_now().nanoseconds / 1e9
 
-        while time.time() - t0 < _WIGGLE_TIMEOUT_S:
-            t = time.time() - t0
+        while self.time_now().nanoseconds / 1e9 - t0 < _WIGGLE_TIMEOUT_S:
+            t = self.time_now().nanoseconds / 1e9 - t0
 
             # Check if plug has entered close-range zone
             plug_pos = None
@@ -746,9 +755,9 @@ class SFPInsertionPolicy(Policy):
         )
 
         settled = 0
-        t0 = time.time()
+        t0 = self.time_now().nanoseconds / 1e9
 
-        while time.time() - t0 < _APPROACH_TIMEOUT_S:
+        while self.time_now().nanoseconds / 1e9 - t0 < _APPROACH_TIMEOUT_S:
             # Look up plug position and rotation
             plug_pos, plug_R = None, None
             for frame in plug_frames:
@@ -793,7 +802,7 @@ class SFPInsertionPolicy(Policy):
             else:
                 settled = 0
 
-            if int((time.time() - t0) * 5) % 10 == 0:
+            if int((self.time_now().nanoseconds / 1e9 - t0) * 5) % 10 == 0:
                 send_feedback(
                     f"GT approach: pos={np.linalg.norm(pos_err)*1000:.1f}mm  "
                     f"rot={math.degrees(np.linalg.norm(omega)):.1f}°  "
@@ -988,7 +997,7 @@ class SFPInsertionPolicy(Policy):
         if self._pose_detector is None:
             return False
 
-        t0 = time.time()
+        t0 = self.time_now().nanoseconds / 1e9
         best_conf:      float            = 0.0
         best_score:     tuple            = (-1, -1, -1.0, -1.0, float("-inf"))
         best_port_pos:  Optional[np.ndarray] = None
@@ -996,7 +1005,7 @@ class SFPInsertionPolicy(Policy):
         best_cam_R:     Optional[np.ndarray] = None
         best_cam_name:  str              = "unknown"
 
-        while time.time() - t0 < timeout_sec:
+        while self.time_now().nanoseconds / 1e9 - t0 < timeout_sec:
             obs = get_observation()
             if obs is None:
                 self.sleep_for(0.1)
@@ -1252,8 +1261,8 @@ class SFPInsertionPolicy(Policy):
         p0 = obs0.controller_state.tcp_pose.position
         target = np.array([p0.x, p0.y, p0.z], dtype=float) + np.asarray(delta, dtype=float)
 
-        t0 = time.time()
-        while time.time() - t0 < timeout_sec:
+        t0 = self.time_now().nanoseconds / 1e9
+        while self.time_now().nanoseconds / 1e9 - t0 < timeout_sec:
             obs = get_observation()
             if obs is None:
                 self.sleep_for(0.05)
@@ -1289,8 +1298,8 @@ class SFPInsertionPolicy(Policy):
         speed = _YOLO_WRIST_NUDGE_SPEED_RAD_S
         duration = abs(angle_rad) / speed
         ang = axis * (speed if angle_rad > 0.0 else -speed)
-        t0 = time.time()
-        while time.time() - t0 < duration:
+        t0 = self.time_now().nanoseconds / 1e9
+        while self.time_now().nanoseconds / 1e9 - t0 < duration:
             self._send_cmd(move_robot, np.zeros(3), ang)
             self.sleep_for(1.0 / 20)
         self._stop(move_robot)
@@ -1598,10 +1607,10 @@ class SFPInsertionPolicy(Policy):
             f"standoff={standoff_m*1000:.1f}mm"
         )
 
-        t0 = time.time()
+        t0 = self.time_now().nanoseconds / 1e9
         settled = 0
 
-        while time.time() - t0 < timeout_sec:
+        while self.time_now().nanoseconds / 1e9 - t0 < timeout_sec:
             obs = get_observation()
             if obs is None:
                 self.sleep_for(0.05)
@@ -1621,7 +1630,7 @@ class SFPInsertionPolicy(Policy):
                 lin_vel = lin_vel / lin_speed * self._yolo_approach_max_speed_mps
             self._send_cmd(move_robot, lin_vel)
 
-            if int((time.time() - t0) * 5) % 5 == 0:
+            if int((self.time_now().nanoseconds / 1e9 - t0) * 5) % 5 == 0:
                 send_feedback(
                     f"YOLO approach ({active_frame}): err={err_m*1000:.0f}mm "
                     f"target=[{target[0]:.3f},{target[1]:.3f},{target[2]:.3f}]"
@@ -1677,9 +1686,9 @@ class SFPInsertionPolicy(Policy):
 
         settled   = 0
         no_detect = 0
-        t0        = time.time()
+        t0        = self.time_now().nanoseconds / 1e9
 
-        while time.time() - t0 < _APPROACH_TIMEOUT_S:
+        while self.time_now().nanoseconds / 1e9 - t0 < _APPROACH_TIMEOUT_S:
             obs = get_observation()
             if obs is None:
                 continue
@@ -1721,7 +1730,7 @@ class SFPInsertionPolicy(Policy):
 
             pos_err_m = float(np.linalg.norm(pos_err))
 
-            if int((time.time() - t0) * 5) % 10 == 0:
+            if int((self.time_now().nanoseconds / 1e9 - t0) * 5) % 10 == 0:
                 send_feedback(
                     f"YOLO({cam_name}): cls={det['class_id']} "
                     f"conf={det['conf']:.2f} "
@@ -2003,11 +2012,11 @@ class SFPInsertionPolicy(Policy):
             axis = axis / norm
         self._insertion_axis = axis
 
-        start = time.time()
+        start = self.time_now().nanoseconds / 1e9
         step = 0
         lat_ref = None
         stall_last_prog = 0.0
-        stall_last_t = time.monotonic()
+        stall_last_t = self.time_now().nanoseconds / 1e9
         stall_start = None
         lat_correct_ref: Optional[np.ndarray] = None
 
@@ -2015,8 +2024,8 @@ class SFPInsertionPolicy(Policy):
             "Using YOLO/servo insertion fallback because ACT weights are unavailable"
         )
 
-        while time.time() - start < timeout_sec:
-            t0 = time.time()
+        while self.time_now().nanoseconds / 1e9 - start < timeout_sec:
+            t0 = self.time_now().nanoseconds / 1e9
             obs_msg = get_observation()
 
             plug_pos = None
@@ -2032,7 +2041,7 @@ class SFPInsertionPolicy(Policy):
                     lat_correct_ref = plug_pos.copy()
 
                 axial_prog = float(np.dot(plug_pos - lat_ref, axis))
-                now = time.monotonic()
+                now = self.time_now().nanoseconds / 1e9
                 dt = max(now - stall_last_t, 0.01)
                 rate_mm_s = (axial_prog - stall_last_prog) / dt * 1000.0
                 stall_last_prog = axial_prog
@@ -2048,7 +2057,7 @@ class SFPInsertionPolicy(Policy):
                         )
                         return True
 
-                elapsed = time.time() - start
+                elapsed = self.time_now().nanoseconds / 1e9 - start
                 if rate_mm_s < _STALL_RATE_MM_S and elapsed > _STALL_GRACE_S:
                     if stall_start is None:
                         stall_start = now
@@ -2085,7 +2094,7 @@ class SFPInsertionPolicy(Policy):
                 )
 
             step += 1
-            time.sleep(max(0.0, 0.1 - (time.time() - t0)))
+            self.sleep_for(max(0.0, 0.1 - (self.time_now().nanoseconds / 1e9 - t0)))
 
         self._stop(move_robot)
         self.get_logger().info(
@@ -2125,20 +2134,20 @@ class SFPInsertionPolicy(Policy):
         task = self._task
         plug_frames = self._plug_frame_candidates(task)
 
-        start = time.time()
+        start = self.time_now().nanoseconds / 1e9
         step = 0
 
         # Stall detection state (mirrors _reset_stall / _check_stall)
         lat_ref         = None   # plug position when ACT started (axial reference)
         stall_last_prog = 0.0
-        stall_last_t    = time.monotonic()
+        stall_last_t    = self.time_now().nanoseconds / 1e9
         stall_start     = None
 
         # Lateral-correction overlay reference (set on first plug observation)
         lat_correct_ref: Optional[np.ndarray] = None
 
-        while time.time() - start < timeout_sec:
-            t0 = time.time()
+        while self.time_now().nanoseconds / 1e9 - start < timeout_sec:
+            t0 = self.time_now().nanoseconds / 1e9
 
             obs_msg = get_observation()
             if obs_msg is None:
@@ -2156,7 +2165,7 @@ class SFPInsertionPolicy(Policy):
                     lat_ref = plug_pos.copy()
 
                 axial_prog = float(np.dot(plug_pos - lat_ref, self._insertion_axis))
-                now = time.monotonic()
+                now = self.time_now().nanoseconds / 1e9
                 dt  = max(now - stall_last_t, 0.01)
                 rate_mm_s = (axial_prog - stall_last_prog) / dt * 1000.0
                 stall_last_prog = axial_prog
@@ -2177,10 +2186,10 @@ class SFPInsertionPolicy(Policy):
                         return True
                     if dist_remaining <= _CLOSE_THRESH_M:
                         stall_start = None   # suppress stall — plug nearly seated
-                        self.sleep_for(max(0.0, 0.1 - (time.time() - t0)))
+                        self.sleep_for(max(0.0, 0.1 - (self.time_now().nanoseconds / 1e9 - t0)))
                         continue
 
-                elapsed_act = time.time() - start
+                elapsed_act = self.time_now().nanoseconds / 1e9 - start
                 if rate_mm_s < _STALL_RATE_MM_S and elapsed_act > _STALL_GRACE_S:
                     if stall_start is None:
                         stall_start = now
@@ -2231,8 +2240,8 @@ class SFPInsertionPolicy(Policy):
                 )
             step += 1
 
-            elapsed = time.time() - t0
-            time.sleep(max(0.0, 0.1 - elapsed))
+            elapsed = self.time_now().nanoseconds / 1e9 - t0
+            self.sleep_for(max(0.0, 0.1 - elapsed))
 
         self.get_logger().info(
             f"ACT phase complete after {step} steps ({timeout_sec:.0f} s timeout)"
