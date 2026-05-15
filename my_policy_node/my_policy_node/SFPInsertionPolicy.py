@@ -52,7 +52,8 @@ from my_policy_node.PortPoseDetector import CLASS_SC, CLASS_SFP, PortPoseDetecto
 
 # ── Approach constants — identical to InsertionDataCollector ─────────────────
 _APPROACH_KP            = 4.0
-_APPROACH_ORIENT_KP     = 3.0
+_APPROACH_AXIS_ORIENT_KP = 1.5
+_APPROACH_AXIS_MAX_ANG_VEL = 0.35
 _APPROACH_Z_ABOVE       = 0.008   # 8 mm before entrance
 _APPROACH_DONE_M        = 0.002   # 2 mm position tolerance
 _APPROACH_DONE_RAD      = 0.025   # ~1.4° orientation tolerance
@@ -84,6 +85,11 @@ _SERVO_INSERT_SPEED_MPS  = 0.010
 # ── YOLO/PnP safety and debug ─────────────────────────────────────────────────
 _YOLO_MAX_TARGET_DIST_M   = 0.12
 _YOLO_MAX_UPWARD_STEP_M   = 0.04
+_YOLO_MAX_DOWNWARD_STEP_M = 0.04
+_YOLO_CALIBRATION_PROBE_M = 0.003
+_YOLO_CALIBRATION_MAX_POS_SPREAD_M = 0.030
+_YOLO_CALIBRATION_MAX_Z_SPREAD_M = 0.020
+_YOLO_CALIBRATION_MAX_AXIS_SPREAD_RAD = math.radians(35.0)
 
 # Empirical correction from YOLO/PnP object datum to the simulator's SFP port
 # TF frame. Initial calibration from GT comparison:
@@ -106,18 +112,18 @@ def _quat_to_rot(q):
     ])
 
 
-def _rot_error(R_cur: np.ndarray, R_des: np.ndarray) -> np.ndarray:
-    """Axis-angle rotation error: angular velocity to rotate R_cur → R_des."""
-    R_err = R_des @ R_cur.T
-    angle = math.acos(max(-1.0, min(1.0, (np.trace(R_err) - 1) / 2)))
-    if angle < 1e-6:
+def _axis_align_error(cur_axis: np.ndarray, des_axis: np.ndarray) -> np.ndarray:
+    """Smallest axis-angle correction that rotates cur_axis onto des_axis."""
+    cur = np.asarray(cur_axis, dtype=float)
+    des = np.asarray(des_axis, dtype=float)
+    cur /= max(np.linalg.norm(cur), 1e-9)
+    des /= max(np.linalg.norm(des), 1e-9)
+    v = np.cross(cur, des)
+    s = float(np.linalg.norm(v))
+    c = float(np.clip(np.dot(cur, des), -1.0, 1.0))
+    if s < 1e-6:
         return np.zeros(3)
-    axis = np.array([
-        R_err[2, 1] - R_err[1, 2],
-        R_err[0, 2] - R_err[2, 0],
-        R_err[1, 0] - R_err[0, 1],
-    ]) / (2 * math.sin(angle))
-    return axis * angle
+    return (v / s) * math.atan2(s, c)
 
 
 # ── Policy root resolution ────────────────────────────────────────────────────
@@ -303,10 +309,20 @@ class SFPInsertionPolicy(Policy):
         )
         self._yolo_handoff_standoff_m = max(
             0.0,
-            float(_declare_or_get(parent_node, "yolo_handoff_standoff_m", 0.002)),
+            float(_declare_or_get(parent_node, "yolo_handoff_standoff_m", 0.010)),
+        )
+        self._yolo_sc_handoff_standoff_m = max(
+            0.0,
+            float(_declare_or_get(parent_node, "yolo_sc_handoff_standoff_m", 0.010)),
         )
         self._yolo_focal_length_px = float(
             _declare_or_get(parent_node, "yolo_focal_length_px", 0.0)
+        )
+        self._yolo_device = str(
+            _declare_or_get(parent_node, "yolo_device", "cpu")
+        )
+        self._yolo_imgsz = int(
+            _declare_or_get(parent_node, "yolo_imgsz", 640)
         )
         self._yolo_min_conf = float(
             _declare_or_get(parent_node, "yolo_min_conf", 0.40)
@@ -332,8 +348,11 @@ class SFPInsertionPolicy(Policy):
         self.get_logger().info(
             "SFPInsertionPolicy YOLO params: "
             f"visual_standoff={self._yolo_approach_standoff_m*1000:.0f}mm "
-            f"handoff_standoff={self._yolo_handoff_standoff_m*1000:.0f}mm "
+            f"sfp_handoff_standoff={self._yolo_handoff_standoff_m*1000:.0f}mm "
+            f"sc_handoff_standoff={self._yolo_sc_handoff_standoff_m*1000:.0f}mm "
             f"focal={focal_msg} "
+            f"device={self._yolo_device} "
+            f"imgsz={self._yolo_imgsz} "
             f"refine={self._yolo_refine_after_approach}"
         )
 
@@ -360,6 +379,8 @@ class SFPInsertionPolicy(Policy):
                     conf_thresh=self._yolo_min_conf,
                     keypoint_conf_thresh=self._yolo_kpt_conf,
                     ransac_reproj_error_px=self._yolo_ransac_reproj_px,
+                    device=self._yolo_device,
+                    imgsz=self._yolo_imgsz,
                 )
                 self.get_logger().info(
                     f"SFPInsertionPolicy: YOLO pose model loaded from {model_path}"
@@ -654,7 +675,7 @@ class SFPInsertionPolicy(Policy):
             "observation.wrist_force": (raw_wrist - self.wrist_mean) / self.wrist_std,
         }
 
-    # ── GT approach (mirrors InsertionDataCollector exactly) ──────────────
+    # ── GT approach ───────────────────────────────────────────────────────
 
     def _gt_approach(
         self,
@@ -664,11 +685,11 @@ class SFPInsertionPolicy(Policy):
         z_above: float = _APPROACH_Z_ABOVE,
     ) -> bool:
         """
-        Simultaneously corrects position AND orientation using KP velocity control,
-        identical to InsertionDataCollector._approach().
+        Simultaneously corrects position and connector-axis orientation using
+        KP velocity control.
 
         Position target: entrance_pos - axis * APPROACH_Z_ABOVE  (8 mm before entrance)
-        Orientation target: plug rotation aligned to port rotation
+        Orientation target: plug insertion axis aligned to port insertion axis
         Settled when both position and orientation are within tolerance for 2 s.
         """
         port_frames = [
@@ -707,6 +728,12 @@ class SFPInsertionPolicy(Policy):
         axis = delta / dlen if dlen > 0.005 else np.array([0.0, 0.0, -1.0])
         self._insertion_axis = axis   # persist for force monitoring and backoff
         target = entrance_pos - axis * z_above
+        port_axis_idx = 2
+        port_axis_sign = 1.0
+        if port_R is not None:
+            axis_in_port = port_R.T @ axis
+            port_axis_idx = int(np.argmax(np.abs(axis_in_port)))
+            port_axis_sign = 1.0 if axis_in_port[port_axis_idx] >= 0.0 else -1.0
 
         self._port_pos = port_pos   # used by _act_phase for close-range detection
 
@@ -736,13 +763,16 @@ class SFPInsertionPolicy(Policy):
 
             pos_err = target - plug_pos
             omega = (
-                _rot_error(plug_R, port_R)
+                _axis_align_error(plug_R[:, port_axis_idx] * port_axis_sign, axis)
                 if (plug_R is not None and port_R is not None)
                 else np.zeros(3)
             )
 
             lin_vel = _APPROACH_KP * pos_err
-            ang_vel = _APPROACH_ORIENT_KP * omega
+            ang_vel = _APPROACH_AXIS_ORIENT_KP * omega
+            ang_speed = float(np.linalg.norm(ang_vel))
+            if ang_speed > _APPROACH_AXIS_MAX_ANG_VEL:
+                ang_vel = ang_vel / ang_speed * _APPROACH_AXIS_MAX_ANG_VEL
             self._send_cmd(move_robot, lin_vel, ang_vel)
 
             pos_ok = np.linalg.norm(pos_err) < _APPROACH_DONE_M
@@ -1025,8 +1055,9 @@ class SFPInsertionPolicy(Policy):
         self._insertion_axis = best_ins_axis
 
         self.get_logger().info(
-            f"YOLO TF published: yolo/{port_frame}  cam={best_cam_name}  "
-            f"conf={best_conf:.2f}  pos={best_port_pos.round(3)}"
+            f"PnP pose accepted: yolo/{port_frame}  cam={best_cam_name}  "
+            f"conf={best_conf:.2f}  pos={best_port_pos.round(3)}  "
+            f"axis={best_ins_axis.round(3)}"
         )
         return True
 
@@ -1176,6 +1207,177 @@ class SFPInsertionPolicy(Policy):
 
         return best
 
+    def _move_tcp_delta(
+        self,
+        get_observation: GetObservationCallback,
+        move_robot: MoveRobotCallback,
+        delta: np.ndarray,
+        timeout_sec: float = 3.0,
+        done_m: float = 0.0015,
+    ) -> bool:
+        obs0 = get_observation()
+        if obs0 is None:
+            return False
+        p0 = obs0.controller_state.tcp_pose.position
+        target = np.array([p0.x, p0.y, p0.z], dtype=float) + np.asarray(delta, dtype=float)
+
+        t0 = time.time()
+        while time.time() - t0 < timeout_sec:
+            obs = get_observation()
+            if obs is None:
+                self.sleep_for(0.05)
+                continue
+            p = obs.controller_state.tcp_pose.position
+            tcp_pos = np.array([p.x, p.y, p.z], dtype=float)
+            err = target - tcp_pos
+            if float(np.linalg.norm(err)) < done_m:
+                self._stop(move_robot)
+                return True
+
+            lin_vel = _APPROACH_KP * err
+            lin_speed = float(np.linalg.norm(lin_vel))
+            if lin_speed > self._yolo_approach_max_speed_mps:
+                lin_vel = lin_vel / lin_speed * self._yolo_approach_max_speed_mps
+            self._send_cmd(move_robot, lin_vel)
+            self.sleep_for(1.0 / 20)
+
+        self._stop(move_robot)
+        return False
+
+    def _yolo_pose_sample(self, get_observation: GetObservationCallback, target_class: int):
+        obs = get_observation()
+        if obs is None:
+            return None
+        det, port_pos, ins_axis, cam_R, cam_name = self._best_detection_all_cameras(
+            obs, target_class
+        )
+        if det is None or port_pos is None or ins_axis is None:
+            return None
+        axis = np.asarray(ins_axis, dtype=float)
+        axis /= max(np.linalg.norm(axis), 1e-9)
+        return {
+            "det": det,
+            "port_pos": np.asarray(port_pos, dtype=float),
+            "ins_axis": axis,
+            "cam_R": cam_R,
+            "cam_name": cam_name,
+        }
+
+    def _yolo_probe_axis(self, get_observation: GetObservationCallback) -> np.ndarray:
+        obs = get_observation()
+        if obs is not None and obs.center_camera_info.header.frame_id:
+            _, cam_R = self._lookup_pos_rot(obs.center_camera_info.header.frame_id)
+            if cam_R is not None:
+                axis = np.asarray(cam_R[:, 0], dtype=float)
+                axis[2] = 0.0
+                norm = float(np.linalg.norm(axis))
+                if norm > 1e-6:
+                    return axis / norm
+        return np.array([1.0, 0.0, 0.0], dtype=float)
+
+    def _calibrate_yolo_pose_probe(
+        self,
+        target_class: int,
+        port_frame: str,
+        entrance_frame: str,
+        get_observation: GetObservationCallback,
+        move_robot: MoveRobotCallback,
+        send_feedback: SendFeedbackCallback,
+    ) -> bool:
+        if self._pose_detector is None:
+            return False
+
+        send_feedback("YOLO calibration: probing keypoints left/right...")
+        probe_axis = self._yolo_probe_axis(get_observation)
+        probe = probe_axis * _YOLO_CALIBRATION_PROBE_M
+
+        samples = []
+        first = self._yolo_pose_sample(get_observation, target_class)
+        if first is not None:
+            samples.append(first)
+
+        moves = (probe, -2.0 * probe, probe)
+        labels = ("right", "left", "center")
+        current_offset = np.zeros(3, dtype=float)
+        for label, delta in zip(labels, moves):
+            if not self._move_tcp_delta(get_observation, move_robot, delta):
+                self.get_logger().warn(f"YOLO calibration probe move failed at {label}")
+                break
+            current_offset += delta
+            self.sleep_for(0.15)
+            sample = self._yolo_pose_sample(get_observation, target_class)
+            if sample is not None:
+                samples.append(sample)
+        if float(np.linalg.norm(current_offset)) > 5e-4:
+            self._move_tcp_delta(get_observation, move_robot, -current_offset)
+            self.sleep_for(0.15)
+            sample = self._yolo_pose_sample(get_observation, target_class)
+            if sample is not None:
+                samples.append(sample)
+
+        if len(samples) < 2:
+            self.get_logger().warn("YOLO calibration: not enough PnP samples")
+            send_feedback("YOLO calibration failed: not enough stable detections")
+            return False
+
+        positions = np.stack([s["port_pos"] for s in samples], axis=0)
+        median_pos = np.median(positions, axis=0)
+        pos_spread = float(np.max(np.linalg.norm(positions - median_pos, axis=1)))
+        z_spread = float(np.ptp(positions[:, 2]))
+        axes = np.stack([s["ins_axis"] for s in samples], axis=0)
+        ref_axis = axes[0].copy()
+        for i in range(len(axes)):
+            if float(np.dot(axes[i], ref_axis)) < 0.0:
+                axes[i] *= -1.0
+        mean_axis = np.mean(axes, axis=0)
+        mean_axis /= max(np.linalg.norm(mean_axis), 1e-9)
+        axis_spread = float(
+            max(
+                math.acos(float(np.clip(np.dot(axis, mean_axis), -1.0, 1.0)))
+                for axis in axes
+            )
+        )
+
+        self.get_logger().info(
+            "YOLO calibration samples: "
+            f"n={len(samples)} pos_spread={pos_spread*1000:.1f}mm "
+            f"z_spread={z_spread*1000:.1f}mm "
+            f"axis_spread={math.degrees(axis_spread):.1f}deg "
+            f"median={median_pos.round(4)} axis={mean_axis.round(4)}"
+        )
+
+        if (
+            pos_spread > _YOLO_CALIBRATION_MAX_POS_SPREAD_M
+            or z_spread > _YOLO_CALIBRATION_MAX_Z_SPREAD_M
+            or axis_spread > _YOLO_CALIBRATION_MAX_AXIS_SPREAD_RAD
+        ):
+            self.get_logger().error(
+                "Rejecting YOLO handoff: calibration samples disagree "
+                f"(pos_spread={pos_spread*1000:.1f}mm, "
+                f"z_spread={z_spread*1000:.1f}mm, "
+                f"axis_spread={math.degrees(axis_spread):.1f}deg)"
+            )
+            send_feedback("YOLO calibration rejected unstable PnP pose")
+            return False
+
+        best_i = int(np.argmin(np.linalg.norm(positions - median_pos, axis=1)))
+        best = samples[best_i]
+        self._port_pos = median_pos
+        self._insertion_axis = mean_axis
+        self._publish_yolo_tfs(
+            port_frame,
+            entrance_frame,
+            self._port_pos,
+            self._insertion_axis,
+            best["cam_R"],
+            float(best["det"].get("conf", 0.0)),
+        )
+        send_feedback(
+            f"YOLO calibration ok: spread={pos_spread*1000:.0f}mm "
+            f"z={z_spread*1000:.0f}mm"
+        )
+        return True
+
     def _approach_to_yolo_pos(
         self,
         get_observation: GetObservationCallback,
@@ -1207,24 +1409,31 @@ class SFPInsertionPolicy(Policy):
             entrance_pos = self._port_pos - axis * _YOLO_SFP_ENTRANCE_OFFSET_M
             self._insertion_axis = axis
 
-        target = entrance_pos - axis * standoff_m
+        target = entrance_pos.copy()
+        if abs(axis[2]) > 1e-3:
+            # Align laterally to the detected port, but stop before the port in
+            # depth instead of driving the TCP directly to the detected Z.
+            target[2] = entrance_pos[2] - axis[2] * standoff_m
+        else:
+            target = entrance_pos - axis * standoff_m
         obs0 = get_observation()
         if obs0 is not None:
             p0 = obs0.controller_state.tcp_pose.position
             tcp0 = np.array([p0.x, p0.y, p0.z])
             target_delta = target - tcp0
             target_dist = float(np.linalg.norm(target_delta))
-            upward_step = float(target_delta[2])
+            vertical_step = float(target_delta[2])
             if (
-                (target_dist > _YOLO_MAX_TARGET_DIST_M and upward_step > 0.0)
-                or upward_step > _YOLO_MAX_UPWARD_STEP_M
+                (target_dist > _YOLO_MAX_TARGET_DIST_M and vertical_step > 0.0)
+                or vertical_step > _YOLO_MAX_UPWARD_STEP_M
+                or vertical_step < -_YOLO_MAX_DOWNWARD_STEP_M
             ):
                 self.get_logger().error(
                     "Rejecting YOLO approach target as implausible: "
                     f"tcp={tcp0.round(4)} target={target.round(4)} "
                     f"delta_mm={np.round(target_delta * 1000, 1)} "
                     f"dist={target_dist*1000:.1f}mm "
-                    f"up={upward_step*1000:.1f}mm"
+                    f"vertical={vertical_step*1000:.1f}mm"
                 )
                 send_feedback("YOLO PnP target rejected; skipping visual approach")
                 return False
@@ -1283,9 +1492,14 @@ class SFPInsertionPolicy(Policy):
         self._stop(move_robot)
         self.get_logger().warn(
             f"YOLO pos-approach timeout after {timeout_sec:.0f}s — "
-            "continuing to ACT from current position"
+            "continuing from current position"
         )
         return False
+
+    def _handoff_standoff_for_class(self, target_class: int) -> float:
+        if target_class == CLASS_SC:
+            return self._yolo_sc_handoff_standoff_m
+        return self._yolo_handoff_standoff_m
 
     def _yolo_approach(
         self,
@@ -1416,7 +1630,7 @@ class SFPInsertionPolicy(Policy):
                 self.get_logger().info(
                     f"No GT TF — YOLO scan (class={target_cls}, all cameras, arm still)"
                 )
-                send_feedback("YOLO: scanning cameras from current position...")
+                send_feedback("PnP: scanning cameras from current position...")
 
                 # Phase 1 — detect port while arm is stationary (best position estimate)
                 yolo_ok = self._yolo_detect_tf(
@@ -1475,30 +1689,56 @@ class SFPInsertionPolicy(Policy):
                                 "the initial estimate"
                             )
 
-                    if abs(
-                        self._yolo_handoff_standoff_m
-                        - self._yolo_approach_standoff_m
-                    ) > 1e-4:
+                    calibrated_ok = self._calibrate_yolo_pose_probe(
+                        target_cls,
+                        port_frame,
+                        entrance_frame,
+                        get_observation,
+                        move_robot,
+                        send_feedback,
+                    )
+                    if not calibrated_ok:
+                        self.get_logger().error(
+                            "YOLO calibration failed; refusing handoff because "
+                            "PnP pose is not stable under small camera motion."
+                        )
+                        self._stop(move_robot)
+                        return False
+
+                    handoff_standoff_m = self._handoff_standoff_for_class(target_cls)
+                    if abs(handoff_standoff_m - self._yolo_approach_standoff_m) > 1e-4:
                         send_feedback(
-                            f"YOLO: moving to ACT handoff standoff "
-                            f"{self._yolo_handoff_standoff_m*1000:.0f} mm..."
+                            f"ACT handoff: moving to insertion handoff standoff "
+                            f"{handoff_standoff_m*1000:.0f} mm..."
+                        )
+                        self.get_logger().info(
+                            f"ACT handoff START  standoff="
+                            f"{handoff_standoff_m*1000:.0f}mm class={target_cls}"
                         )
                         approach_ok = self._approach_to_yolo_pos(
                             get_observation,
                             move_robot,
                             send_feedback,
                             target_class=target_cls,
-                            standoff_m=self._yolo_handoff_standoff_m,
+                            standoff_m=handoff_standoff_m,
                             timeout_sec=25.0,
                         )
                         if not approach_ok:
-                            self.get_logger().error(
-                                "YOLO handoff approach failed; refusing ACT "
-                                "handoff because TCP is outside ACT start distribution."
+                            if self._act_available:
+                                self.get_logger().error(
+                                    "YOLO handoff approach failed; refusing ACT "
+                                    "handoff because TCP is outside ACT start distribution."
+                                )
+                                send_feedback("YOLO handoff approach failed — not starting ACT")
+                                self._stop(move_robot)
+                                return False
+                            self.get_logger().warn(
+                                "YOLO handoff approach failed; continuing with "
+                                "servo insertion fallback from the current pose."
                             )
-                            send_feedback("YOLO handoff approach failed — not starting ACT")
-                            self._stop(move_robot)
-                            return False
+                            send_feedback(
+                                "YOLO handoff did not settle — starting servo insertion anyway"
+                            )
                     send_feedback(
                         "Approach done — starting "
                         + ("ACT insertion..." if self._act_available else "servo insertion...")
@@ -1519,7 +1759,14 @@ class SFPInsertionPolicy(Policy):
                 self._stop(move_robot)
                 return False
 
-            self._act_phase(get_observation, move_robot, send_feedback)
+            result = self._act_phase(get_observation, move_robot, send_feedback)
+            if result == "stall":
+                send_feedback("No insertion progress — final reachable pose, stopping task")
+                self.get_logger().warn(
+                    "No insertion progress after handoff; stopping insert_cable "
+                    "instead of retrying."
+                )
+                self._stop(move_robot)
             return True
 
         self._publish_yolo_gt_comparison(
@@ -1572,10 +1819,13 @@ class SFPInsertionPolicy(Policy):
             if result != "stall":
                 break
 
-            if attempt >= _MAX_REALIGN_RETRIES:
-                self.get_logger().warn(
-                    f"Max realign retries ({_MAX_REALIGN_RETRIES}) reached — finishing."
-                )
+            send_feedback("No insertion progress — final reachable pose, stopping task")
+            self.get_logger().warn(
+                "No insertion progress; stopping insert_cable instead of "
+                "entering recovery retry loop."
+            )
+            self._stop(move_robot)
+            break
 
         return True
 

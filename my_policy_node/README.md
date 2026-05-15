@@ -45,7 +45,8 @@ Useful YOLO/PnP runtime parameters are exposed by the same launch path:
 
 ```bash
 SFP_YOLO_APPROACH_STANDOFF_M=0.100 \
-SFP_YOLO_HANDOFF_STANDOFF_M=0.002 \
+SFP_YOLO_HANDOFF_STANDOFF_M=0.010 \
+SFP_YOLO_SC_HANDOFF_STANDOFF_M=0.010 \
 SFP_YOLO_FOCAL_LENGTH_PX=0.0 \
 bash my_policy_node/scripts/run_sfp_insertion.sh
 ```

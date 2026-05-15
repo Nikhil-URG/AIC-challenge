@@ -180,9 +180,13 @@ class PortPoseDetector:
         conf_thresh: float = _CONF_THRESH,
         keypoint_conf_thresh: float = _KPT_CONF_THRESH,
         ransac_reproj_error_px: float = _RANSAC_REPROJ_ERROR_PX,
+        device: str = "cpu",
+        imgsz: int = 640,
     ) -> None:
         from ultralytics import YOLO  # lazy import — keeps ROS startup fast
         self._model = YOLO(str(model_path))
+        self._device = str(device)
+        self._imgsz = int(imgsz)
         self._conf_thresh = float(conf_thresh)
         self._kpt_conf_thresh = float(keypoint_conf_thresh)
         self._ransac_reproj_error_px = float(ransac_reproj_error_px)
@@ -325,7 +329,24 @@ class PortPoseDetector:
             kp_px      np.ndarray (N,2) keypoint pixel coordinates
             kp_conf    np.ndarray (N,)  per-keypoint confidence
         """
-        results = self._model(img_rgb, verbose=False)
+        try:
+            results = self._model.predict(
+                img_rgb,
+                verbose=False,
+                device=self._device,
+                imgsz=self._imgsz,
+            )
+        except Exception as exc:
+            if self._device != "cpu" and "out of memory" in str(exc).lower():
+                self._device = "cpu"
+                results = self._model.predict(
+                    img_rgb,
+                    verbose=False,
+                    device=self._device,
+                    imgsz=self._imgsz,
+                )
+            else:
+                raise
         detections: List[dict] = []
         for r in results:
             if r.boxes is None or r.keypoints is None:
@@ -543,5 +564,8 @@ class PortPoseDetector:
         port_pos = cam_R @ target_cam + cam_pos
         insertion_axis = cam_R @ axis_cam
         insertion_axis /= max(np.linalg.norm(insertion_axis), 1e-9)
+
+        detection["pnp_rvec"] = np.asarray(rvec, dtype=np.float64).reshape(3).tolist()
+        detection["pnp_tvec"] = np.asarray(tvec, dtype=np.float64).reshape(3).tolist()
 
         return port_pos, insertion_axis
