@@ -240,12 +240,6 @@ class SFPInsertionPolicy(Policy):
         self.get_logger().info(f"SFPInsertionPolicy: use_gt={self._use_gt}")
 
         # ── YOLO / PnP runtime parameters ────────────────────────────────
-        self._yolo_model_path_param = str(
-            _declare_or_get(parent_node, "yolo_model_path", "")
-        )
-        self._yolo_cad_keypoints_path_param = str(
-            _declare_or_get(parent_node, "yolo_cad_keypoints_path", "")
-        )
         self._yolo_approach_standoff_m = max(
             0.0,
             float(_declare_or_get(parent_node, "yolo_approach_standoff_m", 0.100)),
@@ -299,32 +293,8 @@ class SFPInsertionPolicy(Policy):
 
         # ── YOLO port-pose detector (optional) ───────────────────────────
         self._pose_detector: Optional[PortPoseDetector] = None
-        configured_model = (
-            Path(self._yolo_model_path_param).expanduser()
-            if self._yolo_model_path_param
-            else None
-        )
-        if configured_model is not None and configured_model.is_file():
-            model_path = configured_model
-        elif configured_model is not None:
-            self.get_logger().warn(
-                f"SFPInsertionPolicy: configured yolo_model_path not found: "
-                f"{configured_model}"
-            )
-            model_path = PortPoseDetector.find_model()
-        else:
-            model_path = PortPoseDetector.find_model()
-
-        cad_keypoints_path = None
-        if self._yolo_cad_keypoints_path_param:
-            candidate = Path(self._yolo_cad_keypoints_path_param).expanduser()
-            if candidate.is_file():
-                cad_keypoints_path = candidate
-            else:
-                self.get_logger().warn(
-                    f"SFPInsertionPolicy: yolo_cad_keypoints_path not found: "
-                    f"{candidate}; using built-in CAD points"
-                )
+        model_path = PortPoseDetector.find_model()
+        cad_keypoints_path = PortPoseDetector.find_cad_keypoints()
         if model_path is not None:
             try:
                 self._pose_detector = PortPoseDetector(

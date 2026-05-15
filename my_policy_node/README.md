@@ -51,8 +51,8 @@ bash my_policy_node/scripts/run_sfp_insertion.sh
 ```
 
 `SFP_YOLO_FOCAL_LENGTH_PX=0.0` means "use the focal length from each
-`CameraInfo` message". Set `SFP_YOLO_CAD_KEYPOINTS_PATH=/path/to/cad_keypoints.yaml`
-to override the built-in CAD keypoint tables.
+`CameraInfo` message". The YOLO weights and CAD keypoint YAML are discovered
+by the policy code from `my_policy_node/yolo_pose_model/aic_output/`.
 
 Stop with `Ctrl+C` in Terminal B first, then Terminal A.
 

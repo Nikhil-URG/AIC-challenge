@@ -277,15 +277,37 @@ class PortPoseDetector:
     # ── Model discovery ───────────────────────────────────────────────────────
 
     @staticmethod
+    def _artifact_candidates(filename: str) -> list[Path]:
+        pkg_root = Path(__file__).resolve().parent.parent
+        cwd = Path.cwd()
+        candidates = [
+            pkg_root / "yolo_pose_model" / "aic_output" / filename,
+            pkg_root / "pose_model" / filename,
+            cwd / "yolo_pose_model" / "aic_output" / filename,
+            cwd / "my_policy_node" / "yolo_pose_model" / "aic_output" / filename,
+            Path.home() / "ws_aic/src/aic/my_policy_node/yolo_pose_model/aic_output" / filename,
+        ]
+        candidates.extend(
+            parent / "my_policy_node" / "yolo_pose_model" / "aic_output" / filename
+            for parent in cwd.parents
+        )
+        return candidates
+
+    @staticmethod
     def find_model() -> Optional[Path]:
         """Return the path to best.pt if found in any standard location."""
-        pkg_root = Path(__file__).resolve().parent.parent
-        candidates = [
-            pkg_root / "yolo_pose_model" / "aic_output" / "best.pt",
-            pkg_root / "pose_model" / "best.pt",
-            Path.home() / "ws_aic/src/aic/my_policy_node/yolo_pose_model/aic_output/best.pt",
-        ]
-        for c in candidates:
+        for c in PortPoseDetector._artifact_candidates("best.pt"):
+            if c.is_file():
+                return c
+        return None
+
+    @staticmethod
+    def find_cad_keypoints() -> Optional[Path]:
+        """Return the path to cad_keypoints.yaml if found beside the YOLO model."""
+        for c in PortPoseDetector._artifact_candidates("cad_keypoints.yaml"):
+            if c.is_file():
+                return c
+        for c in PortPoseDetector._artifact_candidates("cad_keypoints.yml"):
             if c.is_file():
                 return c
         return None
