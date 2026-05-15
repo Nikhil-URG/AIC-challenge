@@ -19,11 +19,27 @@ echo "============================================"
 echo " SFP Insertion — Trained Policy"
 echo " Policy : my_policy_node.SFPInsertionPolicy"
 echo " Working : $AIC_DIR"
+echo " YOLO visual standoff : ${SFP_YOLO_APPROACH_STANDOFF_M:-0.100} m"
+echo " YOLO handoff standoff: ${SFP_YOLO_HANDOFF_STANDOFF_M:-0.002} m"
+echo " YOLO focal override  : ${SFP_YOLO_FOCAL_LENGTH_PX:-0.0} px (0 = CameraInfo)"
 echo "============================================"
 
 cd "$AIC_DIR"
 
+SFP_YOLO_MODEL_PATH="${SFP_YOLO_MODEL_PATH:-}"
+SFP_YOLO_CAD_KEYPOINTS_PATH="${SFP_YOLO_CAD_KEYPOINTS_PATH:-}"
+SFP_YOLO_APPROACH_STANDOFF_M="${SFP_YOLO_APPROACH_STANDOFF_M:-0.100}"
+SFP_YOLO_HANDOFF_STANDOFF_M="${SFP_YOLO_HANDOFF_STANDOFF_M:-0.002}"
+SFP_YOLO_FOCAL_LENGTH_PX="${SFP_YOLO_FOCAL_LENGTH_PX:-0.0}"
+SFP_YOLO_APPROACH_MAX_SPEED_MPS="${SFP_YOLO_APPROACH_MAX_SPEED_MPS:-0.05}"
+
 pixi run ros2 run aic_model aic_model \
   --ros-args \
   -p use_sim_time:=true \
-  -p policy:=my_policy_node.SFPInsertionPolicy
+  -p policy:=my_policy_node.SFPInsertionPolicy \
+  -p yolo_model_path:="$SFP_YOLO_MODEL_PATH" \
+  -p yolo_cad_keypoints_path:="$SFP_YOLO_CAD_KEYPOINTS_PATH" \
+  -p yolo_approach_standoff_m:="$SFP_YOLO_APPROACH_STANDOFF_M" \
+  -p yolo_handoff_standoff_m:="$SFP_YOLO_HANDOFF_STANDOFF_M" \
+  -p yolo_focal_length_px:="$SFP_YOLO_FOCAL_LENGTH_PX" \
+  -p yolo_approach_max_speed_mps:="$SFP_YOLO_APPROACH_MAX_SPEED_MPS"

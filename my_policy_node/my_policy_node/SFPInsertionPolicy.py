@@ -141,6 +141,20 @@ def _find_policy_root() -> Path:
     )
 
 
+def _declare_or_get(parent_node: Node, name: str, default):
+    try:
+        parent_node.declare_parameter(name, default)
+    except Exception:
+        pass
+    return parent_node.get_parameter(name).value
+
+
+def _as_bool(value) -> bool:
+    if isinstance(value, str):
+        return value.strip().lower() in {"1", "true", "yes", "on"}
+    return bool(value)
+
+
 _POLICY_ROOT = _find_policy_root()
 _DEFAULT_PRETRAINED = (
     _POLICY_ROOT
@@ -225,6 +239,53 @@ class SFPInsertionPolicy(Policy):
                 self._use_gt = True
         self.get_logger().info(f"SFPInsertionPolicy: use_gt={self._use_gt}")
 
+        # ── YOLO / PnP runtime parameters ────────────────────────────────
+        self._yolo_model_path_param = str(
+            _declare_or_get(parent_node, "yolo_model_path", "")
+        )
+        self._yolo_cad_keypoints_path_param = str(
+            _declare_or_get(parent_node, "yolo_cad_keypoints_path", "")
+        )
+        self._yolo_approach_standoff_m = max(
+            0.0,
+            float(_declare_or_get(parent_node, "yolo_approach_standoff_m", 0.100)),
+        )
+        self._yolo_handoff_standoff_m = max(
+            0.0,
+            float(_declare_or_get(parent_node, "yolo_handoff_standoff_m", 0.002)),
+        )
+        self._yolo_focal_length_px = float(
+            _declare_or_get(parent_node, "yolo_focal_length_px", 0.0)
+        )
+        self._yolo_min_conf = float(
+            _declare_or_get(parent_node, "yolo_min_conf", 0.40)
+        )
+        self._yolo_kpt_conf = float(
+            _declare_or_get(parent_node, "yolo_keypoint_conf", 0.30)
+        )
+        self._yolo_ransac_reproj_px = float(
+            _declare_or_get(parent_node, "yolo_ransac_reproj_error_px", 6.0)
+        )
+        self._yolo_refine_after_approach = _as_bool(
+            _declare_or_get(parent_node, "yolo_refine_after_approach", True)
+        )
+        self._yolo_approach_max_speed_mps = max(
+            0.005,
+            float(_declare_or_get(parent_node, "yolo_approach_max_speed_mps", 0.05)),
+        )
+        focal_msg = (
+            f"{self._yolo_focal_length_px:.1f}px"
+            if self._yolo_focal_length_px > 0.0
+            else "CameraInfo"
+        )
+        self.get_logger().info(
+            "SFPInsertionPolicy YOLO params: "
+            f"visual_standoff={self._yolo_approach_standoff_m*1000:.0f}mm "
+            f"handoff_standoff={self._yolo_handoff_standoff_m*1000:.0f}mm "
+            f"focal={focal_msg} "
+            f"refine={self._yolo_refine_after_approach}"
+        )
+
         # TF broadcaster — used to publish YOLO-estimated debug frames
         self._tf_pub = TransformBroadcaster(parent_node)
 
@@ -238,12 +299,48 @@ class SFPInsertionPolicy(Policy):
 
         # ── YOLO port-pose detector (optional) ───────────────────────────
         self._pose_detector: Optional[PortPoseDetector] = None
-        model_path = PortPoseDetector.find_model()
+        configured_model = (
+            Path(self._yolo_model_path_param).expanduser()
+            if self._yolo_model_path_param
+            else None
+        )
+        if configured_model is not None and configured_model.is_file():
+            model_path = configured_model
+        elif configured_model is not None:
+            self.get_logger().warn(
+                f"SFPInsertionPolicy: configured yolo_model_path not found: "
+                f"{configured_model}"
+            )
+            model_path = PortPoseDetector.find_model()
+        else:
+            model_path = PortPoseDetector.find_model()
+
+        cad_keypoints_path = None
+        if self._yolo_cad_keypoints_path_param:
+            candidate = Path(self._yolo_cad_keypoints_path_param).expanduser()
+            if candidate.is_file():
+                cad_keypoints_path = candidate
+            else:
+                self.get_logger().warn(
+                    f"SFPInsertionPolicy: yolo_cad_keypoints_path not found: "
+                    f"{candidate}; using built-in CAD points"
+                )
         if model_path is not None:
             try:
-                self._pose_detector = PortPoseDetector(model_path)
+                self._pose_detector = PortPoseDetector(
+                    model_path,
+                    cad_keypoints_path=cad_keypoints_path,
+                    conf_thresh=self._yolo_min_conf,
+                    keypoint_conf_thresh=self._yolo_kpt_conf,
+                    ransac_reproj_error_px=self._yolo_ransac_reproj_px,
+                )
                 self.get_logger().info(
                     f"SFPInsertionPolicy: YOLO pose model loaded from {model_path}"
+                    + (
+                        f" with CAD keypoints {cad_keypoints_path}"
+                        if cad_keypoints_path is not None
+                        else ""
+                    )
                 )
             except Exception as exc:
                 self.get_logger().warn(
@@ -834,6 +931,7 @@ class SFPInsertionPolicy(Policy):
 
         t0 = time.time()
         best_conf:      float            = 0.0
+        best_score:     tuple            = (-1, -1, -1.0, -1.0, float("-inf"))
         best_port_pos:  Optional[np.ndarray] = None
         best_ins_axis:  Optional[np.ndarray] = None
         best_cam_R:     Optional[np.ndarray] = None
@@ -856,12 +954,20 @@ class SFPInsertionPolicy(Policy):
             raw_msg = ""
             if "raw_port_pos" in det:
                 raw_msg = f" raw={det['raw_port_pos'].round(3)}"
+            kp_msg = (
+                f" kp={det.get('pnp_valid_points', 0)}"
+                f"/{det.get('pnp_inliers', 0)}"
+                f" kpconf={det.get('pnp_mean_kp_conf', 0.0):.2f}"
+                f" reproj={det.get('pnp_reprojection_error_px', float('nan')):.1f}px"
+            )
             send_feedback(
                 f"YOLO({cam_name}) cls={det['class_id']} conf={conf:.2f} "
-                f"pos={port_pos.round(3)}{raw_msg}"
+                f"{kp_msg} pos={port_pos.round(3)}{raw_msg}"
             )
 
-            if conf > best_conf:
+            score = det.get("selection_score", self._yolo_selection_score(det))
+            if score > best_score:
+                best_score    = score
                 best_conf     = conf
                 best_port_pos = port_pos
                 best_ins_axis = ins_axis
@@ -963,14 +1069,34 @@ class SFPInsertionPolicy(Policy):
 
     # ── YOLO-based approach (no ground-truth TF required) ────────────────
 
+    def _camera_matrix_for_yolo(self, camera_info) -> np.ndarray:
+        K = np.array(camera_info.k, dtype=np.float64).reshape(3, 3)
+        if self._yolo_focal_length_px > 0.0:
+            K[0, 0] = self._yolo_focal_length_px
+            K[1, 1] = self._yolo_focal_length_px
+        return K
+
+    @staticmethod
+    def _yolo_selection_score(det: dict) -> tuple:
+        return (
+            int(det.get("pnp_valid_points", 0)),
+            int(det.get("pnp_inliers", 0)),
+            float(det.get("pnp_mean_kp_conf", 0.0)),
+            float(det.get("conf", 0.0)),
+            -float(det.get("pnp_reprojection_error_px", 1e9)),
+        )
+
     def _best_detection_all_cameras(
         self,
         obs,
         target_class: int,
     ):
         """
-        Run YOLO on all three cameras and return the highest-confidence
-        detection together with its 3-D estimate.
+        Run YOLO on all three cameras and return the best PnP-ready detection.
+
+        Selection prefers the camera/detection with the most usable CAD-matched
+        keypoints, then the most PnP inliers, then the strongest keypoint
+        confidence. Box confidence is only a later tie-breaker.
 
         Returns (det, port_pos, ins_axis, cam_R, cam_name) or
                 (None, None, None, None, None) when nothing is detected.
@@ -981,12 +1107,12 @@ class SFPInsertionPolicy(Policy):
             ("right",  obs.right_camera_info,  obs.right_image),
         ]
         best = (None, None, None, None, None)
-        best_conf = 0.0
+        best_score = (-1, -1, -1.0, -1.0, float("-inf"))
 
         for cam_name, ci, img_msg in cameras:
             if ci.width == 0 or not any(ci.k):
                 continue
-            K         = np.array(ci.k).reshape(3, 3)
+            K         = self._camera_matrix_for_yolo(ci)
             D         = np.array(ci.d, dtype=np.float64) if ci.d else None
             cam_frame = ci.header.frame_id
             img_w, img_h = img_msg.width, img_msg.height
@@ -999,25 +1125,27 @@ class SFPInsertionPolicy(Policy):
                 img_msg.data, dtype=np.uint8
             ).reshape(img_h, img_w, 3)
             dets = self._pose_detector.detect(img_np)
-            det  = self._pose_detector.best_detection(dets, target_class)
-            if det is None:
-                continue
+            for det in dets:
+                if int(det["class_id"]) != int(target_class):
+                    continue
 
-            port_pos, ins_axis = self._pose_detector.estimate_port_3d(
-                det, K, cam_pos, cam_R, img_w, img_h, D
-            )
-            if port_pos is None:
-                continue
-            raw_port_pos = port_pos.copy()
-            bias = _YOLO_PORT_BIAS_M.get(target_class)
-            if bias is not None:
-                port_pos = port_pos + bias
-                det["raw_port_pos"] = raw_port_pos
-                det["bias_m"] = bias
+                port_pos, ins_axis = self._pose_detector.estimate_port_3d(
+                    det, K, cam_pos, cam_R, img_w, img_h, D
+                )
+                if port_pos is None:
+                    continue
+                raw_port_pos = port_pos.copy()
+                bias = _YOLO_PORT_BIAS_M.get(target_class)
+                if bias is not None:
+                    port_pos = port_pos + bias
+                    det["raw_port_pos"] = raw_port_pos
+                    det["bias_m"] = bias
 
-            if det["conf"] > best_conf:
-                best_conf = det["conf"]
-                best = (det, port_pos, ins_axis, cam_R, cam_name)
+                det["camera_name"] = cam_name
+                det["selection_score"] = self._yolo_selection_score(det)
+                if det["selection_score"] > best_score:
+                    best_score = det["selection_score"]
+                    best = (det, port_pos, ins_axis, cam_R, cam_name)
 
         return best
 
@@ -1100,7 +1228,11 @@ class SFPInsertionPolicy(Policy):
             pos_err = target - tcp_pos
             err_m = float(np.linalg.norm(pos_err))
 
-            self._send_cmd(move_robot, _APPROACH_KP * pos_err)
+            lin_vel = _APPROACH_KP * pos_err
+            lin_speed = float(np.linalg.norm(lin_vel))
+            if lin_speed > self._yolo_approach_max_speed_mps:
+                lin_vel = lin_vel / lin_speed * self._yolo_approach_max_speed_mps
+            self._send_cmd(move_robot, lin_vel)
 
             if int((time.time() - t0) * 5) % 5 == 0:
                 send_feedback(
@@ -1199,7 +1331,10 @@ class SFPInsertionPolicy(Policy):
             if int((time.time() - t0) * 5) % 10 == 0:
                 send_feedback(
                     f"YOLO({cam_name}): cls={det['class_id']} "
-                    f"conf={det['conf']:.2f}  err={pos_err_m*1000:.0f}mm"
+                    f"conf={det['conf']:.2f} "
+                    f"kp={det.get('pnp_valid_points', 0)}"
+                    f"/{det.get('pnp_inliers', 0)} "
+                    f"err={pos_err_m*1000:.0f}mm"
                 )
 
             if pos_err_m < _APPROACH_DONE_M:
@@ -1261,7 +1396,9 @@ class SFPInsertionPolicy(Policy):
                     get_observation, send_feedback,
                 )
 
-                # Phase 2 — log current TCP, then approach to 2 mm in front of port
+                # Phase 2 — log current TCP, then approach to a safe visual
+                # standoff. This gives the second PnP pass a larger target in
+                # the image without jumping straight into the port.
                 if yolo_ok:
                     # Log TCP vs port so we know how far the arm is from detection
                     obs0 = get_observation()
@@ -1275,12 +1412,13 @@ class SFPInsertionPolicy(Policy):
                         f"Port est: {self._port_pos.round(4)}"
                     )
                     send_feedback(
-                        f"YOLO port at {self._port_pos.round(3)} — approaching 2 mm above..."
+                        f"YOLO port at {self._port_pos.round(3)} — "
+                        f"approaching {self._yolo_approach_standoff_m*1000:.0f} mm standoff..."
                     )
                     approach_ok = self._approach_to_yolo_pos(
                         get_observation, move_robot, send_feedback,
                         target_class=target_cls,
-                        standoff_m=0.002,
+                        standoff_m=self._yolo_approach_standoff_m,
                         timeout_sec=25.0,
                     )
                     if not approach_ok:
@@ -1291,6 +1429,48 @@ class SFPInsertionPolicy(Policy):
                         send_feedback("YOLO approach failed — not starting ACT")
                         self._stop(move_robot)
                         return False
+
+                    if self._yolo_refine_after_approach:
+                        send_feedback("YOLO: refining pose from closer camera view...")
+                        refined_ok = self._yolo_detect_tf(
+                            target_cls,
+                            port_frame,
+                            entrance_frame,
+                            get_observation,
+                            send_feedback,
+                            timeout_sec=3.0,
+                            min_conf=self._yolo_min_conf,
+                        )
+                        if not refined_ok:
+                            self.get_logger().warn(
+                                "YOLO refine pass did not improve pose; keeping "
+                                "the initial estimate"
+                            )
+
+                    if abs(
+                        self._yolo_handoff_standoff_m
+                        - self._yolo_approach_standoff_m
+                    ) > 1e-4:
+                        send_feedback(
+                            f"YOLO: moving to ACT handoff standoff "
+                            f"{self._yolo_handoff_standoff_m*1000:.0f} mm..."
+                        )
+                        approach_ok = self._approach_to_yolo_pos(
+                            get_observation,
+                            move_robot,
+                            send_feedback,
+                            target_class=target_cls,
+                            standoff_m=self._yolo_handoff_standoff_m,
+                            timeout_sec=25.0,
+                        )
+                        if not approach_ok:
+                            self.get_logger().error(
+                                "YOLO handoff approach failed; refusing ACT "
+                                "handoff because TCP is outside ACT start distribution."
+                            )
+                            send_feedback("YOLO handoff approach failed — not starting ACT")
+                            self._stop(move_robot)
+                            return False
                     send_feedback("Approach done — starting ACT insertion...")
                 else:
                     self.get_logger().warn(

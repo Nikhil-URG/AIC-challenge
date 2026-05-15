@@ -41,6 +41,19 @@ pixi run ros2 run aic_model aic_model \
   -p policy:=my_policy_node.SFPInsertionPolicy
 ```
 
+Useful YOLO/PnP runtime parameters are exposed by the same launch path:
+
+```bash
+SFP_YOLO_APPROACH_STANDOFF_M=0.100 \
+SFP_YOLO_HANDOFF_STANDOFF_M=0.002 \
+SFP_YOLO_FOCAL_LENGTH_PX=0.0 \
+bash my_policy_node/scripts/run_sfp_insertion.sh
+```
+
+`SFP_YOLO_FOCAL_LENGTH_PX=0.0` means "use the focal length from each
+`CameraInfo` message". Set `SFP_YOLO_CAD_KEYPOINTS_PATH=/path/to/cad_keypoints.yaml`
+to override the built-in CAD keypoint tables.
+
 Stop with `Ctrl+C` in Terminal B first, then Terminal A.
 
 ---
@@ -78,6 +91,9 @@ insert_cable()
   │
   ├─ _gt_approach()             Phase 1: KP velocity alignment (position + orientation)
   │
+  ├─ _yolo_detect_tf()          No-GT fallback: YOLO pose + CAD PnP across 3 cameras
+  ├─ _approach_to_yolo_pos()    Move to visual standoff, re-detect, then hand off
+  │
   └─ for attempt in 0..10:
        ├─ attempt 0        → plain ACT
        ├─ attempts 1-2     → 2 mm backoff + realign → plain ACT
@@ -105,6 +121,24 @@ Replicates `InsertionDataCollector._approach()` exactly:
 | `_APPROACH_DONE_M` | 2 mm | Position convergence threshold |
 | `_APPROACH_DONE_RAD` | 0.025 rad (~1.4°) | Orientation convergence threshold |
 | `_APPROACH_SETTLED_TICKS` | 20 | Ticks both stable = done |
+
+### Visual 6D pose fallback (`ground_truth:=false`)
+
+When task-board TF is not available, `SFPInsertionPolicy` uses
+`PortPoseDetector`:
+
+- Runs the YOLO pose model on left, center, and right images
+- Chooses the camera by usable CAD-matched keypoint count first, then PnP
+  inliers, keypoint confidence, and detection confidence
+- Uses 12 physical SC keypoints or up to 17 SFP keypoints, depending on the
+  task class and available CAD rows
+- Uses the camera matrix/distortion from each `CameraInfo`; optionally overrides
+  focal length with `yolo_focal_length_px`
+- Solves PnP in the camera frame, transforms the result through camera TF into
+  `base_link`, and publishes RViz markers/TF for debugging
+- Moves slowly to `yolo_approach_standoff_m` (default 100 mm), takes a second
+  image for a refined estimate, then moves to `yolo_handoff_standoff_m` before
+  ACT starts
 
 ### Phase 2 — ACT inference loop (`_act_phase`)
 
