@@ -16,6 +16,7 @@
 
 import json
 import math
+import os
 import time
 from pathlib import Path
 from typing import Optional
@@ -78,6 +79,7 @@ _WIGGLE_FREQ_HZ          = 1.5    # Hz
 _WIGGLE_PUSH_MPS         = 0.003  # gentle axial push during wiggle
 _WIGGLE_TIMEOUT_S        = 20.0
 _MAX_REALIGN_RETRIES     = 10
+_SERVO_INSERT_SPEED_MPS  = 0.010
 
 # ── YOLO/PnP safety and debug ─────────────────────────────────────────────────
 _YOLO_MAX_TARGET_DIST_M   = 0.12
@@ -121,9 +123,21 @@ def _rot_error(R_cur: np.ndarray, R_des: np.ndarray) -> np.ndarray:
 # ── Policy root resolution ────────────────────────────────────────────────────
 
 def _find_policy_root() -> Path:
+    env_policy_root = os.environ.get("MY_POLICY_NODE_POLICY_ROOT")
+    if env_policy_root:
+        candidate = Path(env_policy_root).expanduser()
+        if candidate.is_dir():
+            return candidate
+
     candidate = Path(__file__).resolve().parent.parent / "policy"
     if candidate.is_dir():
         return candidate
+
+    for parent in (Path.cwd().resolve(), *Path.cwd().resolve().parents):
+        candidate = parent / "my_policy_node" / "policy"
+        if candidate.is_dir():
+            return candidate
+
     try:
         from ament_index_python.packages import get_package_share_directory
         share = Path(get_package_share_directory("my_policy_node"))
@@ -132,12 +146,14 @@ def _find_policy_root() -> Path:
             return candidate
     except Exception:
         pass
+
     candidate = Path.home() / "ws_aic/src/aic/my_policy_node/policy"
     if candidate.is_dir():
         return candidate
     raise FileNotFoundError(
         "Cannot locate my_policy_node/policy/. "
-        "Ensure the workspace is at ~/ws_aic/src/aic/."
+        "Set MY_POLICY_NODE_POLICY_ROOT or run from a workspace containing "
+        "my_policy_node/policy."
     )
 
 
@@ -163,6 +179,38 @@ _DEFAULT_PRETRAINED = (
 )
 
 
+def _looks_like_git_lfs_pointer(path: Path) -> bool:
+    try:
+        with open(path, "rb") as f:
+            header = f.read(128)
+    except OSError:
+        return False
+    return header.startswith(b"version https://git-lfs.github.com/spec/")
+
+
+def _validate_safetensors_files(policy_path: Path) -> None:
+    required_files = [
+        policy_path / "model.safetensors",
+        policy_path / "policy_preprocessor_step_3_normalizer_processor.safetensors",
+    ]
+    missing = [path for path in required_files if not path.is_file()]
+    if missing:
+        raise FileNotFoundError(
+            "SFPInsertionPolicy checkpoint is incomplete; missing: "
+            + ", ".join(str(path) for path in missing)
+        )
+
+    lfs_pointers = [path for path in required_files if _looks_like_git_lfs_pointer(path)]
+    if lfs_pointers:
+        raise RuntimeError(
+            "SFPInsertionPolicy checkpoint files are Git LFS pointer files, not "
+            "downloaded safetensors weights: "
+            + ", ".join(str(path) for path in lfs_pointers)
+            + ". From the repository root, install Git LFS if needed and run: "
+            "git lfs pull --include='my_policy_node/policy/**'"
+        )
+
+
 class SFPInsertionPolicy(Policy):
     """
     ACT imitation-learning policy for SFP (and SC) plug insertion.
@@ -181,47 +229,56 @@ class SFPInsertionPolicy(Policy):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self._insertion_axis: np.ndarray = np.array([0.0, 0.0, -1.0])  # updated by _gt_approach
         self._port_pos: Optional[np.ndarray] = None                    # updated by _gt_approach
+        self.policy: Optional[ACTPolicy] = None
+        self._act_available = False
 
         policy_path = self._resolve_policy_path()
         self.get_logger().info(f"SFPInsertionPolicy: loading from {policy_path}")
+        try:
+            _validate_safetensors_files(policy_path)
 
-        with open(policy_path / "config.json") as f:
-            config_dict = json.load(f)
-        config_dict.pop("type", None)
+            with open(policy_path / "config.json") as f:
+                config_dict = json.load(f)
+            config_dict.pop("type", None)
 
-        config = draccus.decode(ACTConfig, config_dict)
-        self.policy = ACTPolicy(config)
-        self.policy.load_state_dict(load_file(policy_path / "model.safetensors"))
-        self.policy.eval()
-        self.policy.to(self.device)
+            config = draccus.decode(ACTConfig, config_dict)
+            self.policy = ACTPolicy(config)
+            self.policy.load_state_dict(load_file(policy_path / "model.safetensors"))
+            self.policy.eval()
+            self.policy.to(self.device)
 
-        self.get_logger().info(
-            f"SFPInsertionPolicy ready on {self.device}  ({policy_path.parent.name})"
-        )
+            self.get_logger().info(
+                f"ACT policy ready on {self.device}  ({policy_path.parent.name})"
+            )
 
-        stats = load_file(
-            policy_path / "policy_preprocessor_step_3_normalizer_processor.safetensors"
-        )
+            stats = load_file(
+                policy_path / "policy_preprocessor_step_3_normalizer_processor.safetensors"
+            )
 
-        def _s(key, shape):
-            return stats[key].to(self.device).view(*shape)
+            def _s(key, shape):
+                return stats[key].to(self.device).view(*shape)
 
-        self.img_stats = {
-            "left":   {"mean": _s("observation.images.left_camera.mean",   (1, 3, 1, 1)),
-                       "std":  _s("observation.images.left_camera.std",    (1, 3, 1, 1))},
-            "center": {"mean": _s("observation.images.center_camera.mean", (1, 3, 1, 1)),
-                       "std":  _s("observation.images.center_camera.std",  (1, 3, 1, 1))},
-            "right":  {"mean": _s("observation.images.right_camera.mean",  (1, 3, 1, 1)),
-                       "std":  _s("observation.images.right_camera.std",   (1, 3, 1, 1))},
-        }
-        self.state_mean  = _s("observation.state.mean",        (1, -1))
-        self.state_std   = _s("observation.state.std",         (1, -1))
-        self.wrist_mean  = _s("observation.wrist_force.mean",  (1, -1))
-        self.wrist_std   = _s("observation.wrist_force.std",   (1, -1))
-        self.action_mean = _s("action.mean", (1, -1))
-        self.action_std  = _s("action.std",  (1, -1))
-
-        self.get_logger().info("Normalization statistics loaded.")
+            self.img_stats = {
+                "left":   {"mean": _s("observation.images.left_camera.mean",   (1, 3, 1, 1)),
+                           "std":  _s("observation.images.left_camera.std",    (1, 3, 1, 1))},
+                "center": {"mean": _s("observation.images.center_camera.mean", (1, 3, 1, 1)),
+                           "std":  _s("observation.images.center_camera.std",  (1, 3, 1, 1))},
+                "right":  {"mean": _s("observation.images.right_camera.mean",  (1, 3, 1, 1)),
+                           "std":  _s("observation.images.right_camera.std",   (1, 3, 1, 1))},
+            }
+            self.state_mean  = _s("observation.state.mean",        (1, -1))
+            self.state_std   = _s("observation.state.std",         (1, -1))
+            self.wrist_mean  = _s("observation.wrist_force.mean",  (1, -1))
+            self.wrist_std   = _s("observation.wrist_force.std",   (1, -1))
+            self.action_mean = _s("action.mean", (1, -1))
+            self.action_std  = _s("action.std",  (1, -1))
+            self._act_available = True
+            self.get_logger().info("Normalization statistics loaded.")
+        except Exception as exc:
+            self.get_logger().warn(
+                "ACT safetensors policy is unavailable; continuing with "
+                f"YOLO/servo insertion fallback. Reason: {exc}"
+            )
         self._image_scale = 0.25
 
         self._tare_cli = parent_node.create_client(
@@ -1367,7 +1424,8 @@ class SFPInsertionPolicy(Policy):
         **kwargs,
     ) -> bool:
         self._task = task
-        self.policy.reset()
+        if self.policy is not None:
+            self.policy.reset()
         self.get_logger().info(f"SFPInsertionPolicy.insert_cable() — {task}")
         self._tare()
 
@@ -1471,7 +1529,10 @@ class SFPInsertionPolicy(Policy):
                             send_feedback("YOLO handoff approach failed — not starting ACT")
                             self._stop(move_robot)
                             return False
-                    send_feedback("Approach done — starting ACT insertion...")
+                    send_feedback(
+                        "Approach done — starting "
+                        + ("ACT insertion..." if self._act_available else "servo insertion...")
+                    )
                 else:
                     self.get_logger().warn(
                         "YOLO: no detection — refusing ACT handoff from current position"
@@ -1513,7 +1574,8 @@ class SFPInsertionPolicy(Policy):
                     f"mode={'wiggle' if attempt > 5 else 'lateral' if attempt >= 3 else 'plain'}"
                 )
                 self._backoff(move_robot, send_feedback, dist_m=pullback)
-                self.policy.reset()
+                if self.policy is not None:
+                    self.policy.reset()
 
                 if attempt > 5:
                     # Wiggle mode: position right at entrance and oscillate in
@@ -1527,7 +1589,7 @@ class SFPInsertionPolicy(Policy):
             # Choose ACT mode based on attempt count
             lateral = 3 <= attempt <= 5
             send_feedback(
-                f"ACT insertion (attempt {attempt + 1}"
+                f"{'ACT' if self._act_available else 'Servo'} insertion (attempt {attempt + 1}"
                 + (", lateral correction" if lateral else "")
                 + (", post-wiggle" if attempt > 5 else "")
                 + ")..."
@@ -1545,6 +1607,125 @@ class SFPInsertionPolicy(Policy):
                     f"Max realign retries ({_MAX_REALIGN_RETRIES}) reached — finishing."
                 )
 
+        return True
+
+    # ── Deterministic insertion fallback ─────────────────────────────────
+
+    def _servo_insert_phase(
+        self,
+        get_observation: GetObservationCallback,
+        move_robot: MoveRobotCallback,
+        send_feedback: SendFeedbackCallback,
+        timeout_sec: float = 60.0,
+        lateral_correct: bool = False,
+    ):
+        """
+        Insert with a simple velocity servo when the ACT checkpoint is not
+        available.  YOLO/GT provides the port and axis; this phase only pushes
+        along that axis and optionally corrects lateral drift from plug TF.
+        """
+        task = self._task
+        plug_frames = [
+            f"{task.cable_name}/{task.plug_name}_link",
+            f"{task.cable_name}/{task.plug_name}",
+        ]
+
+        axis = np.asarray(self._insertion_axis, dtype=float)
+        norm = float(np.linalg.norm(axis))
+        if norm < 1e-6:
+            axis = np.array([0.0, 0.0, -1.0], dtype=float)
+        else:
+            axis = axis / norm
+        self._insertion_axis = axis
+
+        start = time.time()
+        step = 0
+        lat_ref = None
+        stall_last_prog = 0.0
+        stall_last_t = time.monotonic()
+        stall_start = None
+        lat_correct_ref: Optional[np.ndarray] = None
+
+        self.get_logger().warn(
+            "Using YOLO/servo insertion fallback because ACT weights are unavailable"
+        )
+
+        while time.time() - start < timeout_sec:
+            t0 = time.time()
+            obs_msg = get_observation()
+
+            plug_pos = None
+            for frame in plug_frames:
+                plug_pos = self._lookup_pos(frame)
+                if plug_pos is not None:
+                    break
+
+            if plug_pos is not None:
+                if lat_ref is None:
+                    lat_ref = plug_pos.copy()
+                if lat_correct_ref is None:
+                    lat_correct_ref = plug_pos.copy()
+
+                axial_prog = float(np.dot(plug_pos - lat_ref, axis))
+                now = time.monotonic()
+                dt = max(now - stall_last_t, 0.01)
+                rate_mm_s = (axial_prog - stall_last_prog) / dt * 1000.0
+                stall_last_prog = axial_prog
+                stall_last_t = now
+
+                if self._port_pos is not None:
+                    dist_remaining = float(np.dot(self._port_pos - plug_pos, axis))
+                    if dist_remaining <= _INSERT_DONE_M:
+                        self._stop(move_robot)
+                        self.get_logger().info(
+                            f"Servo insertion complete  dist={dist_remaining*1000:.1f}mm  "
+                            f"step={step}"
+                        )
+                        return True
+
+                elapsed = time.time() - start
+                if rate_mm_s < _STALL_RATE_MM_S and elapsed > _STALL_GRACE_S:
+                    if stall_start is None:
+                        stall_start = now
+                    elif now - stall_start >= _STALL_WINDOW_S:
+                        self._stop(move_robot)
+                        self.get_logger().warn(
+                            f"Servo stall at step {step}: "
+                            f"axial_prog={axial_prog*1000:.1f}mm  "
+                            f"rate={rate_mm_s:.2f}mm/s"
+                        )
+                        return "stall"
+                else:
+                    stall_start = None
+
+            lin = axis * _SERVO_INSERT_SPEED_MPS
+            if lateral_correct and plug_pos is not None and lat_correct_ref is not None:
+                disp = plug_pos - lat_correct_ref
+                axial_component = float(np.dot(disp, axis))
+                lat_drift = disp - axial_component * axis
+                lin += _LATERAL_KP * (-lat_drift)
+
+            lin = np.clip(lin, -_MAX_LIN_VEL, _MAX_LIN_VEL)
+            self._send_cmd(move_robot, lin)
+
+            if step % 10 == 0:
+                prog_mm = (
+                    float(np.dot(plug_pos - lat_ref, axis)) * 1000.0
+                    if plug_pos is not None and lat_ref is not None
+                    else float("nan")
+                )
+                send_feedback(
+                    f"Servo step {step}  prog={prog_mm:.1f}mm  "
+                    f"v=[{lin[0]:.3f},{lin[1]:.3f},{lin[2]:.3f}] m/s"
+                )
+
+            step += 1
+            time.sleep(max(0.0, 0.1 - (time.time() - t0)))
+
+        self._stop(move_robot)
+        self.get_logger().info(
+            f"Servo insertion phase complete after {step} steps ({timeout_sec:.0f} s timeout)"
+        )
         return True
 
     # ── ACT inference loop ────────────────────────────────────────────────
@@ -1566,6 +1747,15 @@ class SFPInsertionPolicy(Policy):
         (INSERT_HOLD_KP * lat_err), used from attempt 3 onward when plain ACT
         keeps drifting sideways.
         """
+        if not self._act_available or self.policy is None:
+            return self._servo_insert_phase(
+                get_observation,
+                move_robot,
+                send_feedback,
+                timeout_sec=timeout_sec,
+                lateral_correct=lateral_correct,
+            )
+
         # Build plug frame list from stored task
         task = self._task
         plug_frames = [
